@@ -4,7 +4,7 @@ networks:
 
 services:
   kafka:
-    image: bitnami/kafka:latest
+    image: bitnami/kafka
     networks:
       - demo-net
     ports:
@@ -19,7 +19,7 @@ services:
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
 
   nifi:
-    image: apache/nifi:latest
+    image: apache/nifi
     networks:
       - demo-net
     ports:
@@ -35,3 +35,18 @@ services:
       - ./data/nifi/provenance_repository:/opt/nifi/nifi-current/provenance_repository
       - ./data/nifi/extensions:/opt/nifi/nifi-current/extensions
       - ./data/nifi/python_extensions:/opt/nifi/nifi-current/python_extensions
+
+  db:
+    image: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=adminadminadmin
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080

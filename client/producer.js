@@ -15,7 +15,7 @@ await producer.send({
   topic: "gps-data",
   messages: [
     {
-      value: "Hello Kafka",
+      value: "Padova",
     },
   ],
 });
