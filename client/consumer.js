@@ -1,8 +1,8 @@
 import { Kafka, Partitioners } from "kafkajs";
 
 const kafka = new Kafka({
-  clientId: "consumer1",
-  brokers: ["localhost:9094"],
+    clientId: "consumer1",
+    brokers: ["localhost:9094"],
 });
 
 const consumer = kafka.consumer({ groupId: "consumers" });
@@ -11,9 +11,10 @@ await consumer.connect();
 await consumer.subscribe({ topic: "topic-test", fromBeginning: true });
 
 await consumer.run({
-  eachMessage: async ({ topic, partition, message }) => {
-    console.log({
-      value: message.value.toString(),
-    });
-  },
+    eachMessage: async ({ topic, partition, message }) => {
+        console.log({
+            // value: message.value.toString(),
+            value: JSON.parse(message.value.toString())
+        });
+    },
 });

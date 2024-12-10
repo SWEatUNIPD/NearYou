@@ -1,23 +1,90 @@
 import { Kafka, Partitioners } from "kafkajs";
+import fs from 'fs';
+import readline from 'readline';
+import { TrackSimulator } from "./tracks-simulator.js";
+
+const sensorDataFile = "./sensor_data/sensor-1.txt"
 
 const kafka = new Kafka({
-  clientId: "producer1",
-  brokers: ["localhost:9094"],
+    clientId: "producer1",
+    brokers: ["localhost:9094"],
 });
 
 const producer = kafka.producer({
-  createPartitioner: Partitioners.DefaultPartitioner,
-  transactionTimeout: 5,
+    createPartitioner: Partitioners.DefaultPartitioner,
+    transactionTimeout: 5,
 });
 
-await producer.connect();
-await producer.send({
-  topic: "gps-data",
-  messages: [
-    {
-      value: "Padova",
-    },
-  ],
-});
+const serializeObject = (obj) => {
+    return Buffer.from(JSON.stringify(obj));
+};
+
+const sendMessage = async (sensorId, retrievedTime, lat, lon) => {
+    return producer.send({
+        topic: "gps-data",
+        messages: [
+            {
+                value: serializeObject(
+                {
+                    sensor_id: sensorId,
+                    retrieved_time: retrievedTime,
+                    latitude: lat,
+                    longitude: lon
+                }),
+            }
+        ]
+    })
+    // .then(console.log)   // usefull for degubbing
+    .catch(e => console.error(`[example/producer] ${e.message}`, e));
+}
+
+async function run() {
+    const activeSensorIdList = [1];
+    const trkSim = new TrackSimulator(activeSensorIdList);
+    await trkSim.run();
+
+    const sensorDataFile = fs.readFileSync(trkSim.getSensorDataFile(1), 'utf-8');
+    const lines = sensorDataFile.split(/\r?\n/);
+    let currentIndex = 0;
+
+    await producer.connect();
+    const intervalId = setInterval(() => {
+        if (currentIndex < lines.length - 1) {
+            const values = lines[currentIndex].split(',');
+            sendMessage(values[0], values[1], values[2], values[3])
+            currentIndex++;
+        } else {
+            clearInterval(intervalId);
+        }
+    }, trkSim.retrievingInterval);
+
+    // const fileStream = fs.createReadStream(sensorDataFile);
+    // const rl = readline.createInterface({
+    //     input: fileStream,
+    //     crlfDelay: Infinity // Recognizes CR LF ('\r\n') and LF ('\n') as a single line break
+    // });
+
+    // let lines = [];
+    // let currentIndex = 0;
+    // rl.on('line', (line) => {
+    //     lines.push(line);
+    // });
+
+    // await producer.connect();
+    // rl.on('close', () => {
+    //     const intervalId = setInterval(() => {
+    //         if (currentIndex < lines.length) {
+    //             const values = lines[currentIndex].split(',');
+    //             sendMessage(values[0], values[1], values[2], values[3])
+    //             currentIndex++;
+    //         } else {
+    //             clearInterval(intervalId);
+    //         }
+    //     }, 5000);
+    // });
+
+}
+
+run().catch(e => console.error(`[client/producer] ${e.message}`, e))
 
 await producer.disconnect();
