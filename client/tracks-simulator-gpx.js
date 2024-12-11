@@ -1,4 +1,6 @@
 /*
+ * WAITING FOR FIX, SIMILAR TO tracks-simulator.js BUT IT CREATES .gpx AND .sql
+ *
  * xmlbuilder is required in order to build .gpx files for the tracks
  *      
  * npm install xmlbuilder

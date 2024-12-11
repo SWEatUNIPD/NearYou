@@ -24,10 +24,7 @@ export class TrackSimulator {
         this.mapRadiusKm = mapRadiusKm;
         this.maxNumTrackPoints = maxNumTrackPoints;
         this.retrievingInterval = retrievingInterval;
-        this.dataDir = dataDir;
-        if (!override) {
-            this.dataDir = getValidDir(dataDir);
-        }
+        this.dataDir = getValidDir(dataDir, override);
     }
 
     getSensorDataFile(sensorId) {
@@ -90,6 +87,27 @@ export class TrackSimulator {
     }
 }
 
+function getValidDir(dir, override) {
+    // check if dir is invalid or equals to the current directory
+    if (!dir || dir == ".") return ".";
+
+    if (!fs.existsSync(dir)) {
+        // if the directory does not exist, create the directory
+        fs.mkdirSync(dir, { recursive: true });
+        return dir;
+    } else if (!override) {
+        // if the directory exists and the data must not to be overrode, check if the directory is not empty
+        const files = fs.readdirSync(dir);
+        if (files.length != 0) {
+            // if not empty, create a new directory with " - copy" appended
+            return getValidDir(`${dir} - copy`);
+        }
+    }
+
+    // existing empty directory to override
+    return dir;
+}
+
 function radiusKmToDeg(radiusKm) {
     const rLatDeg = radiusKm / 111;
     const rLonDeg = radiusKm / (111 * Math.cos(rLatDeg * (Math.PI / 180)));
@@ -115,25 +133,4 @@ function getRandomTimeInCurrentDay() {
 
     const randomDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, seconds);
     return randomDateTime;
-}
-
-function getValidDir(dir) {
-    // check if dir is invalid or equals to the current directory
-    if (!dir || dir == ".") return ".";
-
-    if (!fs.existsSync(dir)) {
-        // if the directory does not exist, create the directory
-        fs.mkdirSync(dir, { recursive: true });
-        return dir;
-    } else {
-        // if the directory exists, check if the directory is not empty
-        const files = fs.readdirSync(dir);
-        if (files.length != 0) {
-            // if not empty, create a new directory with " - copy" appended
-            return getValidDir(`${dir} - copy`);
-        } else {
-            // if empty, return the original directory
-            return dir;
-        }
-    }
 }
