@@ -52,3 +52,17 @@ services:
     restart: always
     ports:
       - 8080:8080
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - demo-net
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=hamedkarbasi93-kafka-datasource
+    volumes:
+      - ./data/grafana:/var/lib/grafana
