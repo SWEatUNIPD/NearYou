@@ -25,8 +25,8 @@ const sendMessage = async (sensorId, retrievedTime, lat, lon) => {
                 {
                     sensor_id: sensorId,
                     retrieved_time: retrievedTime,
-                    latitude: lat,
-                    longitude: lon
+                    latitude: parseFloat(lat),
+                    longitude: parseFloat(lon)
                 }),
             }
         ]
