@@ -16,10 +16,10 @@ public class PointOfInterest {
   private Merchant merchant;
 
   @Column(nullable = false)
-  private double latitude;
+  private float latitude;
 
   @Column(nullable = false)
-  private double longitude;
+  private float longitude;
 
   private PointOfInterest(PointOfInterestBuilder builder) {
     this.latitude = builder.latitude;
@@ -33,11 +33,11 @@ public class PointOfInterest {
     return id;
   }
 
-  public double getLatitude() {
+  public float getLatitude() {
     return latitude;
   }
 
-  public double getLongitude() {
+  public float getLongitude() {
     return longitude;
   }
 
@@ -47,20 +47,20 @@ public class PointOfInterest {
 
   public static class PointOfInterestBuilder {
     private Merchant merchant;
-    private double latitude;
-    private double longitude;
+    private float latitude;
+    private float longitude;
 
     public PointOfInterestBuilder setMerchant(Merchant merchant) {
       this.merchant = merchant;
       return this;
     }
 
-    public PointOfInterestBuilder setLatitude(double latitude) {
+    public PointOfInterestBuilder setLatitude(float latitude) {
       this.latitude = latitude;
       return this;
     }
 
-    public PointOfInterestBuilder setLongitude(double longitude) {
+    public PointOfInterestBuilder setLongitude(float longitude) {
       this.longitude = longitude;
       return this;
     }

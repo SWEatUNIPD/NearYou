@@ -60,6 +60,5 @@ public class KafkaListeners {
             "Write hello world");
 
     DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss.SSS");
-    if(userRepository.findById("merjakla03@gmail.com").isPresent()) System.out.println("Ciao");
   }
 }

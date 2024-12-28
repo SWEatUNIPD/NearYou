@@ -1,11 +1,8 @@
 package io.github.sweatunipd.NearYou;
 
 import io.github.sweatunipd.NearYou.entity.Gender;
-import io.github.sweatunipd.NearYou.entity.Rent;
 import io.github.sweatunipd.NearYou.entity.Rent.RentBuilder;
-import io.github.sweatunipd.NearYou.entity.Sensor;
 import io.github.sweatunipd.NearYou.entity.Sensor.SensorBuilder;
-import io.github.sweatunipd.NearYou.entity.User;
 import io.github.sweatunipd.NearYou.entity.User.UserBuilder;
 import io.github.sweatunipd.NearYou.repository.RentRepository;
 import io.github.sweatunipd.NearYou.repository.SensorRepository;

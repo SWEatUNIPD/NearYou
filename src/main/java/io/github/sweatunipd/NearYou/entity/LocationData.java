@@ -19,10 +19,10 @@ public class LocationData implements Serializable {
   private Rent rent;
 
   @Column(nullable = false)
-  private double latitude;
+  private float latitude;
 
   @Column(nullable = false)
-  private double longitude;
+  private float longitude;
 
   private LocationData(LocationDataBuilder builder) {
   }
@@ -38,11 +38,11 @@ public class LocationData implements Serializable {
     return id;
   }
 
-  public double getLatitude() {
+  public float getLatitude() {
     return latitude;
   }
 
-  public double getLongitude() {
+  public float getLongitude() {
     return longitude;
   }
 
@@ -53,8 +53,8 @@ public class LocationData implements Serializable {
   public static class LocationDataBuilder {
     private Timestamp fetchTime;
     private Rent rent;
-    private double latitude;
-    private double longitude;
+    private float latitude;
+    private float longitude;
 
     private LocationDataBuilder setFetchTime(Timestamp fetchTime) {
       this.fetchTime = fetchTime;
@@ -66,12 +66,12 @@ public class LocationData implements Serializable {
       return this;
     }
 
-    private LocationDataBuilder setLatitude(double latitude) {
+    private LocationDataBuilder setLatitude(float latitude) {
       this.latitude = latitude;
       return this;
     }
 
-    private LocationDataBuilder setLongitude(double longitude) {
+    private LocationDataBuilder setLongitude(float longitude) {
       this.longitude = longitude;
       return this;
     }
