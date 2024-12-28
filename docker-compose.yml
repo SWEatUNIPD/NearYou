@@ -1,7 +1,7 @@
 services:
   kafka:
     image: bitnami/kafka
-    restart: on-failure
+    restart: always
     ports:
       - "9094:9094"
     environment:
@@ -13,18 +13,45 @@ services:
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,EXTERNAL:PLAINTEXT,PLAINTEXT:PLAINTEXT
       - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
 
-  db:
-    image: postgres
-    restart: on-failure
+#  db:
+#    image: postgres
+#    restart: always
+#    ports:
+#      - 5432:5432
+#    environment:
+#      - POSTGRES_USER=admin
+#      - POSTGRES_PASSWORD=adminadminadmin
+#    volumes:
+#      - ./data/postgres:/var/lib/postgresql/data
+
+  postgis:
+    image: postgis/postgis
+    restart: always
     ports:
       - 5432:5432
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=adminadminadmin
-    volumes:
-      - ./data/postgres:/var/lib/postgresql/data
 
-  # PgAdmin missing
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin4_container
+    restart: always
+    ports:
+      - "8888:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: sweat.unipd@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: Admin12!
+    volumes:
+      - ./data/pgadmin:/var/lib/pgadmin
+
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
 
   grafana:
     image: grafana/grafana
