@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import io.github.sweatunipd.NearYou.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import java.text.DateFormat;
@@ -50,16 +51,15 @@ public class KafkaListeners {
    * solo Secondo la documentazione di spring, possiamo ascoltare i messagi sia tramite
    * `MessageListenerContainer`, sia tramite la annotation riportata qua sotto
    */
-  // @KafkaListener(topics = "gps-data", groupId = "spring")
+  @KafkaListener(topics = "gps-data", groupId = "spring")
   void listener(String data) throws JsonProcessingException {
     ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode = mapper.readTree(data);
     String test =
         chatLanguageModel.generate(
-            "Write me a short name of a company (like Apple and others) [NOTHING ELSE; NO INTRODUCTION; NO ENDINGS; NO NOTHING]");
+            "Write hello world");
 
     DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss.SSS");
-    String time = "2011-10-02 18:48:05.123";
+    if(userRepository.findById("merjakla03@gmail.com").isPresent()) System.out.println("Ciao");
   }
-  ;
 }

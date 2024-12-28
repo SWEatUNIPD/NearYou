@@ -14,7 +14,7 @@ public class LocationData implements Serializable {
   @Column(nullable = false, name = "fetch_time")
   private Timestamp fetchTime;
 
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "rent_id", referencedColumnName = "id", nullable = false)
   private Rent rent;
 
@@ -24,54 +24,60 @@ public class LocationData implements Serializable {
   @Column(nullable = false)
   private double longitude;
 
-  public LocationData(Timestamp fetchTime, Long id, double latitude, double longitude, Rent rent) {
-    this.fetchTime = fetchTime;
-    this.id = id;
-    this.latitude = latitude;
-    this.longitude = longitude;
-    this.rent = rent;
+  private LocationData(LocationDataBuilder builder) {
   }
 
-  public LocationData() {
+  protected LocationData() {
   }
 
   public Timestamp getFetchTime() {
     return fetchTime;
   }
 
-  public void setFetchTime(Timestamp fetchTime) {
-    this.fetchTime = fetchTime;
-  }
-
   public Long getId() {
     return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
   }
 
   public double getLatitude() {
     return latitude;
   }
 
-  public void setLatitude(double latitude) {
-    this.latitude = latitude;
-  }
-
   public double getLongitude() {
     return longitude;
-  }
-
-  public void setLongitude(double longitude) {
-    this.longitude = longitude;
   }
 
   public Rent getRent() {
     return rent;
   }
 
-  public void setRent(Rent rent) {
-    this.rent = rent;
+  public static class LocationDataBuilder {
+    private Timestamp fetchTime;
+    private Rent rent;
+    private double latitude;
+    private double longitude;
+
+    private LocationDataBuilder setFetchTime(Timestamp fetchTime) {
+      this.fetchTime = fetchTime;
+      return this;
+    }
+
+    private LocationDataBuilder setRent(Rent rent) {
+      this.rent = rent;
+      return this;
+    }
+
+    private LocationDataBuilder setLatitude(double latitude) {
+      this.latitude = latitude;
+      return this;
+    }
+
+    private LocationDataBuilder setLongitude(double longitude) {
+      this.longitude = longitude;
+      return this;
+    }
+
+    public LocationData build() {
+      return new LocationData(this);
+    }
   }
 }

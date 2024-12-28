@@ -1,6 +1,7 @@
 package io.github.sweatunipd.NearYou.entity;
 
 import jakarta.persistence.*;
+import org.jetbrains.annotations.Contract;
 
 @Entity(name = "users")
 public class User {
@@ -20,54 +21,70 @@ public class User {
   @Column(nullable = false)
   private int age;
 
-  public User(int age, String email, Gender gender, String name, String surname) {
-    this.age = age;
-    this.email = email;
-    this.gender = gender;
-    this.name = name;
-    this.surname = surname;
-  }
+  protected User() {} //Thx Intellij
 
-  public User() {
-  }
-
-  public int getAge() {
-    return age;
-  }
-
-  public void setAge(int age) {
-    this.age = age;
+  private User(UserBuilder builder) {
+    this.email = builder.email;
+    this.name = builder.name;
+    this.surname = builder.surname;
+    this.gender = builder.gender;
+    this.age = builder.age;
   }
 
   public String getEmail() {
     return email;
   }
 
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public Gender getGender() {
-    return gender;
-  }
-
-  public void setGender(Gender gender) {
-    this.gender = gender;
-  }
-
   public String getName() {
     return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 
   public String getSurname() {
     return surname;
   }
 
-  public void setSurname(String surname) {
-    this.surname = surname;
+  public Gender getGender() {
+    return gender;
+  }
+
+  public int getAge() {
+    return age;
+  }
+
+  public static class UserBuilder {
+    private String email;
+    private String name;
+    private String surname;
+    private Gender gender;
+    private int age;
+
+    public UserBuilder setEmail(final String email) {
+      this.email = email;
+      return this;
+    }
+
+    public UserBuilder setName(final String name) {
+      this.name = name;
+      return this;
+    }
+
+    public UserBuilder setSurname(final String surname) {
+      this.surname = surname;
+      return this;
+    }
+
+    public UserBuilder setGender(final Gender gender) {
+      this.gender = gender;
+      return this;
+    }
+
+    public UserBuilder setAge(final int age) {
+      this.age = age;
+      return this;
+    }
+
+    public User build(){
+      return new User(this);
+    }
   }
 }

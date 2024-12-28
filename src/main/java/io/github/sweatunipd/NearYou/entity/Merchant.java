@@ -14,36 +14,49 @@ public class Merchant {
   @Column(nullable = false)
   private String activityName;
 
-  public Merchant(String activityName, String email, String vat) {
-    this.activityName = activityName;
-    this.email = email;
-    this.vat = vat;
+  public Merchant(MerchantBuilder builder) {
+    this.activityName = builder.activityName;
+    this.email = builder.email;
+    this.vat = builder.vat;
   }
 
-  public Merchant() {
+  protected Merchant() {
   }
 
   public String getActivityName() {
     return activityName;
   }
 
-  public void setActivityName(String activityName) {
-    this.activityName = activityName;
-  }
-
   public String getEmail() {
     return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
   }
 
   public String getVat() {
     return vat;
   }
 
-  public void setVat(String vat) {
-    this.vat = vat;
+  public static class MerchantBuilder {
+    private String vat;
+    private String email;
+    private String activityName;
+
+    public MerchantBuilder setVat(String vat) {
+      this.vat = vat;
+      return this;
+    }
+
+    public MerchantBuilder setEmail(String email) {
+      this.email = email;
+      return this;
+    }
+
+    public MerchantBuilder setActivityName(String activityName) {
+      this.activityName = activityName;
+      return this;
+    }
+
+    public Merchant build() {
+      return new Merchant(this);
+    }
   }
 }

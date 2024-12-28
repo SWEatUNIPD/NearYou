@@ -8,18 +8,18 @@ public class Sensor {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  public Sensor(Long id) {
-    this.id = id;
-  }
+  protected Sensor(){}
 
-  public Sensor() {
+  private Sensor(SensorBuilder sensorBuilder) {
   }
 
   public Long getId() {
     return id;
   }
 
-  public void setId(Long id) {
-    this.id = id;
+  public static class SensorBuilder {
+    public Sensor build() {
+      return new Sensor(this);
+    }
   }
 }

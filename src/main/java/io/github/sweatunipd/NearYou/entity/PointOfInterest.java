@@ -2,6 +2,8 @@ package io.github.sweatunipd.NearYou.entity;
 
 import jakarta.persistence.*;
 
+import java.awt.*;
+
 @Entity(name = "points_of_interest")
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"latitude", "longitude"})})
 public class PointOfInterest {
@@ -9,7 +11,7 @@ public class PointOfInterest {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "merchant_vat", referencedColumnName = "vat", nullable = false)
   private Merchant merchant;
 
@@ -19,44 +21,52 @@ public class PointOfInterest {
   @Column(nullable = false)
   private double longitude;
 
-  public PointOfInterest(Long id, double latitude, double longitude, Merchant merchant) {
-    this.id = id;
-    this.latitude = latitude;
-    this.longitude = longitude;
-    this.merchant = merchant;
+  private PointOfInterest(PointOfInterestBuilder builder) {
+    this.latitude = builder.latitude;
+    this.longitude = builder.longitude;
+    this.merchant = builder.merchant;
   }
 
-  public PointOfInterest() {}
+  protected PointOfInterest(){}
 
   public Long getId() {
     return id;
-  }
-
-  public void setId(Long id) {
-    this.id = id;
   }
 
   public double getLatitude() {
     return latitude;
   }
 
-  public void setLatitude(double latitude) {
-    this.latitude = latitude;
-  }
-
   public double getLongitude() {
     return longitude;
-  }
-
-  public void setLongitude(double longitude) {
-    this.longitude = longitude;
   }
 
   public Merchant getMerchant() {
     return merchant;
   }
 
-  public void setMerchant(Merchant merchant) {
-    this.merchant = merchant;
+  public static class PointOfInterestBuilder {
+    private Merchant merchant;
+    private double latitude;
+    private double longitude;
+
+    public PointOfInterestBuilder setMerchant(Merchant merchant) {
+      this.merchant = merchant;
+      return this;
+    }
+
+    public PointOfInterestBuilder setLatitude(double latitude) {
+      this.latitude = latitude;
+      return this;
+    }
+
+    public PointOfInterestBuilder setLongitude(double longitude) {
+      this.longitude = longitude;
+      return this;
+    }
+
+    public PointOfInterest build() {
+      return new PointOfInterest(this);
+    }
   }
 }

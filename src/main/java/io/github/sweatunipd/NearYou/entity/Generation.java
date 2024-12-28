@@ -4,37 +4,65 @@ import jakarta.persistence.*;
 
 @Entity(name = "generations")
 public class Generation {
-  @Id
-  private long id;
+  @Id private long id;
 
-  @OneToOne
-  @JoinColumn(name = "location_data_id", referencedColumnName = "id", nullable = false, unique = true)
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(
+      name = "location_data_id",
+      referencedColumnName = "id",
+      nullable = false,
+      unique = true)
   private LocationData locationData;
 
   @Column(name = "advertisment")
   private String adv;
 
-  public Generation(String adv, LocationData locationData) {
-    this.adv = adv;
-    this.locationData = locationData;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "point_of_interest_id", referencedColumnName = "id")
+  private PointOfInterest pointOfInterest;
+
+  private Generation(GenerationBuilder builder) {
+    this.adv = builder.adv;
+    this.locationData = builder.locationData;
+    this.pointOfInterest = builder.pointOfInterest;
   }
 
-  public Generation() {
-  }
+  protected Generation() {}
 
   public String getAdv() {
     return adv;
-  }
-
-  public void setAdv(String adv) {
-    this.adv = adv;
   }
 
   public LocationData getLocationData() {
     return locationData;
   }
 
-  public void setLocationData(LocationData locationData) {
-    this.locationData = locationData;
+  public PointOfInterest getPointOfInterest() {
+    return pointOfInterest;
+  }
+
+  public static class GenerationBuilder {
+    private String adv;
+    private LocationData locationData;
+    private PointOfInterest pointOfInterest;
+
+    public GenerationBuilder setAdv(String adv) {
+      this.adv = adv;
+      return this;
+    }
+
+    public GenerationBuilder setLocationData(LocationData locationData) {
+      this.locationData = locationData;
+      return this;
+    }
+
+    public GenerationBuilder setPointOfInterest(PointOfInterest pointOfInterest) {
+      this.pointOfInterest = pointOfInterest;
+      return this;
+    }
+
+    public Generation build() {
+      return new Generation(this);
+    }
   }
 }
