@@ -2,9 +2,9 @@
  * WAITING FOR FIX, SIMILAR TO tracks-simulator.js BUT IT CREATES .gpx AND .sql
  *
  * xmlbuilder is required in order to build .gpx files for the tracks
- *      
+ *
  * npm install xmlbuilder
-*/
+ */
 
 import polyline from '@mapbox/polyline';
 import fs from 'fs';
@@ -18,13 +18,13 @@ class Point {
     }
 }
 
-const mapCenter = new Point(45.406434, 11.876761);   // coordinates of the center of Padua in latitude and longitude
-const mapRadiusKm = 3;   // radius of the map in km
-const maxNumTrackPoints = 1000;   // maximum number of retrieved data in a track
-const retrievingInterval = 5;   // how many seconds GPS data are retrieved
+const mapCenter = new Point(45.406434, 11.876761); // coordinates of the center of Padua in latitude and longitude
+const mapRadiusKm = 3; // radius of the map in km
+const maxNumTrackPoints = 1000; // maximum number of retrieved data in a track
+const retrievingInterval = 5; // how many seconds GPS data are retrieved
 const numCustomers = 2;
-let gpxDir = "./customer_tracks_gpx";
-let sqlInsertDir = "./customer_tracks_sql_insert";
+let gpxDir = './customer_tracks_gpx';
+let sqlInsertDir = './customer_tracks_sql_insert';
 
 function radiusKmToDeg(radiusKm) {
     const rLatDeg = radiusKm / 111;
@@ -35,31 +35,37 @@ function radiusKmToDeg(radiusKm) {
 function generateRandomPoint(center, latDeg, lonDeg) {
     const deltaLat = (Math.random() * 2 - 1) * latDeg;
     const deltaLon = (Math.random() * 2 - 1) * lonDeg;
-    
+
     return {
         latitude: center.latitude + deltaLat,
-        longitude: center.longitude + deltaLon
+        longitude: center.longitude + deltaLon,
     };
 }
 
 async function getPointsOnTrack(start, dest, maxNumPoints = 10) {
-    const osrmUrl = "http://router.project-osrm.org/route/v1/cycling";
+    const osrmUrl = 'http://router.project-osrm.org/route/v1/cycling';
     const requestUrl = `${osrmUrl}/${start.longitude},${start.latitude};${dest.longitude},${dest.latitude}`;
-    
-    const response = await fetch(requestUrl + '?overview=full&geometries=polyline');
+
+    const response = await fetch(
+        requestUrl + '?overview=full&geometries=polyline'
+    );
     if (!response.ok) {
-        throw new Error(`Request error: ${response.status} - ${await response.text()}`);
+        throw new Error(
+            `Request error: ${response.status} - ${await response.text()}`
+        );
     }
 
     const routeData = await response.json();
     const encodedPolyline = routeData.routes[0].geometry;
-    
+
     const trackPoints = polyline.decode(encodedPolyline);
-    
+
     let sampledPoints;
     if (maxNumPoints < trackPoints.length) {
         const step = Math.floor(trackPoints.length / maxNumPoints);
-        sampledPoints = trackPoints.filter((_, index) => index % step == 0).slice(0, maxNumPoints);
+        sampledPoints = trackPoints
+            .filter((_, index) => index % step == 0)
+            .slice(0, maxNumPoints);
     } else {
         sampledPoints = trackPoints;
     }
@@ -74,13 +80,20 @@ function getRandomTimeInCurrentDay() {
     const minutes = Math.floor(Math.random() * 60);
     const seconds = Math.floor(Math.random() * 60);
 
-    const randomDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, seconds);
+    const randomDateTime = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        hours,
+        minutes,
+        seconds
+    );
     return randomDateTime;
 }
 
 function getValidDir(dir) {
     // check if dir is invalid or equals to the current directory
-    if (!dir || dir == ".") return ".";
+    if (!dir || dir == '.') return '.';
 
     if (!fs.existsSync(dir)) {
         // if the directory does not exist, create the directory
@@ -99,27 +112,39 @@ function getValidDir(dir) {
     }
 }
 
-function saveToGpxAndSqlInsert(customerId, trackPoints, retrievingInterval, gpxDir = ".", sqlInsertDir = ".") {
-    let sqlInsertStr = "";
+function saveToGpxAndSqlInsert(
+    customerId,
+    trackPoints,
+    retrievingInterval,
+    gpxDir = '.',
+    sqlInsertDir = '.'
+) {
+    let sqlInsertStr = '';
 
-    const gpx = xmlbuilder.create("gpx", { version: "1.0", encoding: "UTF-8" })
-        .att("version", "1.1")
-        .att("creator", "JavaScript Script")
-        .att("xmlns", "http://www.topografix.com/GPX/1/1");
+    const gpx = xmlbuilder
+        .create('gpx', { version: '1.0', encoding: 'UTF-8' })
+        .att('version', '1.1')
+        .att('creator', 'JavaScript Script')
+        .att('xmlns', 'http://www.topografix.com/GPX/1/1');
 
-    const trk = gpx.ele("trk");
-    trk.ele("name", `Track ${customerId}`);
-    
-    const trkseg = trk.ele("trkseg");
+    const trk = gpx.ele('trk');
+    trk.ele('name', `Track ${customerId}`);
+
+    const trkseg = trk.ele('trkseg');
 
     const startTime = getRandomTimeInCurrentDay();
-    
+
     for (let i = 0; i < trackPoints.length; i++) {
         const point = trackPoints[i];
-        const trkpt = trkseg.ele("trkpt", { lat: point.latitude.toString(), lon: point.longitude.toString() });
-        
-        const timeElement = trkpt.ele("time");
-        const timeValue = new Date(startTime.getTime() + (i * retrievingInterval * 1000));
+        const trkpt = trkseg.ele('trkpt', {
+            lat: point.latitude.toString(),
+            lon: point.longitude.toString(),
+        });
+
+        const timeElement = trkpt.ele('time');
+        const timeValue = new Date(
+            startTime.getTime() + i * retrievingInterval * 1000
+        );
         timeElement.text(timeValue.toISOString());
 
         sqlInsertStr += `INSERT INTO SensorLocation VALUES (1, '${timeValue.toISOString()}', ${point.latitude}, ${point.longitude});\n`;
@@ -130,7 +155,10 @@ function saveToGpxAndSqlInsert(customerId, trackPoints, retrievingInterval, gpxD
     const gpxFileName = path.join(gpxDir, `trk_${customerId}.gpx`);
     fs.writeFileSync(gpxFileName, gpxStr);
 
-    const sqlInsertFileName = path.join(sqlInsertDir, `sql_insert_${customerId}.sql`);
+    const sqlInsertFileName = path.join(
+        sqlInsertDir,
+        `sql_insert_${customerId}.sql`
+    );
     fs.writeFileSync(sqlInsertFileName, sqlInsertStr);
 }
 
@@ -143,8 +171,18 @@ async function main() {
         const start = generateRandomPoint(mapCenter, latDeg, lonDeg);
         const dest = generateRandomPoint(mapCenter, latDeg, lonDeg);
 
-        const trackPoints = await getPointsOnTrack(start, dest, maxNumTrackPoints);
-        saveToGpxAndSqlInsert(i, trackPoints, retrievingInterval, gpxDir, sqlInsertDir);
+        const trackPoints = await getPointsOnTrack(
+            start,
+            dest,
+            maxNumTrackPoints
+        );
+        saveToGpxAndSqlInsert(
+            i,
+            trackPoints,
+            retrievingInterval,
+            gpxDir,
+            sqlInsertDir
+        );
     }
 }
 

@@ -66,7 +66,7 @@
 		<!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-ollama-spring-boot-starter -->
 		<dependency>
 			<groupId>dev.langchain4j</groupId>
-			<artifactId>langchain4j-ollama-spring-boot-starter</artifactId>
+			<artifactId>langchain4j-open-ai-spring-boot-starter</artifactId>
 			<version>0.36.2</version>
 		</dependency>
 		<!--Jackson JSON LIB-->

@@ -16,7 +16,7 @@ export class TrackSimulator {
         mapRadiusKm = 3,
         maxNumTrackPoints = 1000,
         retrievingInterval = 3000,
-        dataDir = "./sensor_data",
+        dataDir = './sensor_data',
         override = true
     ) {
         this.sensorIdList = sensorIdList;
@@ -32,64 +32,86 @@ export class TrackSimulator {
     }
 
     async getPointsOnTrack(start, dest) {
-        const osrmUrl = "http://router.project-osrm.org/route/v1/cycling";
+        const osrmUrl = 'http://router.project-osrm.org/route/v1/cycling';
         const requestUrl = `${osrmUrl}/${start.longitude},${start.latitude};${dest.longitude},${dest.latitude}`;
-        
-        const response = await fetch(requestUrl + '?overview=full&geometries=polyline');
+
+        const response = await fetch(
+            requestUrl + '?overview=full&geometries=polyline'
+        );
         if (!response.ok) {
-            throw new Error(`Request error: ${response.status} - ${await response.text()}`);
+            throw new Error(
+                `Request error: ${response.status} - ${await response.text()}`
+            );
         }
-    
+
         const routeData = await response.json();
         const encodedPolyline = routeData.routes[0].geometry;
-        
+
         const trackPoints = polyline.decode(encodedPolyline);
-        
+
         let sampledPoints;
         if (this.maxNumTrackPoints < trackPoints.length) {
-            const step = Math.floor(trackPoints.length / this.maxNumTrackPoints);
-            sampledPoints = trackPoints.filter((_, index) => index % step == 0).slice(0, this.maxNumTrackPoints);
+            const step = Math.floor(
+                trackPoints.length / this.maxNumTrackPoints
+            );
+            sampledPoints = trackPoints
+                .filter((_, index) => index % step == 0)
+                .slice(0, this.maxNumTrackPoints);
         } else {
             sampledPoints = trackPoints;
         }
-    
+
         return sampledPoints.map(([lat, lon]) => new Point(lat, lon));
     }
 
     saveSensorData(sensorId, trackPoints) {
-        let dataStr = "";
-        
+        let dataStr = '';
+
         const startTime = getRandomTimeInCurrentDay();
-        
+
         for (let i = 0; i < trackPoints.length; i++) {
             const point = trackPoints[i];
-    
-            let timeValue = new Date(startTime.getTime() + (i * this.retrievingInterval));
-            timeValue = timeValue.toISOString().replace('T', ' ').replace('Z', '');
-            
+
+            let timeValue = new Date(
+                startTime.getTime() + i * this.retrievingInterval
+            );
+            timeValue = timeValue
+                .toISOString()
+                .replace('T', ' ')
+                .replace('Z', '');
+
             dataStr += `${sensorId},${timeValue},${point.latitude},${point.longitude}\n`;
         }
-        
+
         const dataFileName = this.getSensorDataFile(sensorId);
         fs.writeFileSync(dataFileName, dataStr);
     }
 
     async run() {
         const [latDeg, lonDeg] = radiusKmToDeg(this.mapRadiusKm);
-    
+
         for (let sensorId of this.sensorIdList) {
             const start = generateRandomPoint(this.mapCenter, latDeg, lonDeg);
             const dest = generateRandomPoint(this.mapCenter, latDeg, lonDeg);
-    
-            const trackPoints = await this.getPointsOnTrack(start, dest, this.maxNumTrackPoints);
-            this.saveSensorData(sensorId, trackPoints, this.retrievingInterval, this.dataDir);
+
+            const trackPoints = await this.getPointsOnTrack(
+                start,
+                dest,
+                this.maxNumTrackPoints
+            );
+            this.saveSensorData(
+                sensorId,
+                trackPoints,
+                this.retrievingInterval,
+                this.dataDir
+            );
         }
     }
 }
 
 function getValidDir(dir, override) {
     // check if dir is invalid or equals to the current directory
-    if (!dir || dir == ".") return ".";
+    if (!dir || dir == '.') return '.';
 
     if (!fs.existsSync(dir)) {
         // if the directory does not exist, create the directory
@@ -117,10 +139,10 @@ function radiusKmToDeg(radiusKm) {
 function generateRandomPoint(center, latDeg, lonDeg) {
     const deltaLat = (Math.random() * 2 - 1) * latDeg;
     const deltaLon = (Math.random() * 2 - 1) * lonDeg;
-    
+
     return {
         latitude: center.latitude + deltaLat,
-        longitude: center.longitude + deltaLon
+        longitude: center.longitude + deltaLon,
     };
 }
 
@@ -131,6 +153,13 @@ function getRandomTimeInCurrentDay() {
     const minutes = Math.floor(Math.random() * 60);
     const seconds = Math.floor(Math.random() * 60);
 
-    const randomDateTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, seconds);
+    const randomDateTime = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        hours,
+        minutes,
+        seconds
+    );
     return randomDateTime;
 }

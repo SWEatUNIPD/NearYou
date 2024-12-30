@@ -6,14 +6,14 @@ import jakarta.persistence.*;
 public class Sensor {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private int id;
 
   protected Sensor(){}
 
   private Sensor(SensorBuilder sensorBuilder) {
   }
 
-  public Long getId() {
+  public int getId() {
     return id;
   }
 

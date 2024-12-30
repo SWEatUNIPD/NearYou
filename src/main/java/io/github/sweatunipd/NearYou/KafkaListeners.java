@@ -4,13 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.langchain4j.model.chat.ChatLanguageModel;
+import io.github.sweatunipd.NearYou.entity.Generation.GenerationBuilder;
+import io.github.sweatunipd.NearYou.entity.LocationData.LocationDataBuilder;
 import io.github.sweatunipd.NearYou.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.sql.Timestamp;
 
 @Component
 public class KafkaListeners {
@@ -23,8 +23,7 @@ public class KafkaListeners {
   private GenerationRepository generationRepository;
   private MerchantRepository merchantRepository;
   private PointOfInterestRepository pointOfInterestRepository;
-
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper mapper = new ObjectMapper();
 
   @Autowired
   public KafkaListeners(
@@ -35,7 +34,8 @@ public class KafkaListeners {
       LocationDataRepository locationDataRepository,
       GenerationRepository generationRepository,
       MerchantRepository merchantRepository,
-      PointOfInterestRepository pointOfInterestRepository) {
+      PointOfInterestRepository pointOfInterestRepository
+  ) {
     this.chatLanguageModel = chatLanguageModel;
     this.userRepository = userRepository;
     this.sensorRepository = sensorRepository;
@@ -53,12 +53,34 @@ public class KafkaListeners {
    */
   @KafkaListener(topics = "gps-data", groupId = "spring")
   void listener(String data) throws JsonProcessingException {
-    ObjectMapper mapper = new ObjectMapper();
     JsonNode jsonNode = mapper.readTree(data);
-    String test =
-        chatLanguageModel.generate(
-            "Write hello world");
+    String test = chatLanguageModel.generate("Write hello world");
+    int userId = jsonNode.get("sensorId").asInt();
+    Long rentId = jsonNode.get("rentId").asLong();
+    float latitude = (float) jsonNode.get("latitude").asDouble();
+    float longitude = (float) jsonNode.get("longitude").asDouble();
+    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+    Long locationDataId =
+        locationDataRepository
+            .save(
+                new LocationDataBuilder()
+                    .setFetchTime(timestamp)
+                    .setRent(
+                        rentRepository
+                            .findById(rentId)
+                            .orElseThrow(() -> new RuntimeException("No rent found")))
+                    .setLatitude(latitude)
+                    .setLongitude(longitude)
+                    .build())
+            .getId();
 
-    DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy hh:mm:ss.SSS");
+    generationRepository.save(
+        new GenerationBuilder()
+            .setAdv(test)
+            .setLocationData(
+                locationDataRepository
+                    .findById(locationDataId)
+                    .orElseThrow(() -> new RuntimeException("No location data found")))
+            .build());
   }
 }

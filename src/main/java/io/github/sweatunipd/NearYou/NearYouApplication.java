@@ -7,8 +7,6 @@ import io.github.sweatunipd.NearYou.entity.User.UserBuilder;
 import io.github.sweatunipd.NearYou.repository.RentRepository;
 import io.github.sweatunipd.NearYou.repository.SensorRepository;
 import io.github.sweatunipd.NearYou.repository.UserRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,9 +22,7 @@ public class NearYouApplication {
   }
 
   @Bean
-  @Transactional
   CommandLineRunner commandLineRunner(
-      EntityManager entityManager,
       UserRepository userRepository,
       SensorRepository sensorRepository,
       RentRepository rentRepository) {
@@ -38,7 +34,6 @@ public class NearYouApplication {
     };
   }
 
-  @Transactional
   public void addUser(UserRepository userRepository) {
     userRepository.save(
         new UserBuilder()
@@ -50,12 +45,12 @@ public class NearYouApplication {
             .build());
   }
 
-  @Transactional
+
   public void addSensor(SensorRepository sensorRepository) {
     sensorRepository.save(new SensorBuilder().build());
   }
 
-  @Transactional
+
   public void addRent(
       UserRepository userRepository,
       SensorRepository sensorRepository,
@@ -69,7 +64,7 @@ public class NearYouApplication {
                             .orElseThrow(() -> new IllegalArgumentException("Problem 1")))
             .setSensor(
                     sensorRepository
-                            .findById(1L)
+                            .findById(1)
                             .orElseThrow(() -> new IllegalArgumentException("Problem 2")))
             .build());
   }

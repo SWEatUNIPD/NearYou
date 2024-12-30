@@ -9,7 +9,7 @@ import java.awt.*;
 public class PointOfInterest {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  private int id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "merchant_vat", referencedColumnName = "vat", nullable = false)
@@ -29,7 +29,7 @@ public class PointOfInterest {
 
   protected PointOfInterest(){}
 
-  public Long getId() {
+  public int getId() {
     return id;
   }
 

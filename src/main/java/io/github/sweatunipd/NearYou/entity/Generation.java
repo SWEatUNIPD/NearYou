@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 
 @Entity(name = "generations")
 public class Generation {
-  @Id private long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private long id;
 
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(
