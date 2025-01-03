@@ -51,7 +51,7 @@ async function run() {
     } else {
       clearInterval(intervalId);
     }
-  }, 20000);
+  }, 3000);
 }
 
 run().catch((e) => console.error(`[client/producer] ${e.message}`, e));

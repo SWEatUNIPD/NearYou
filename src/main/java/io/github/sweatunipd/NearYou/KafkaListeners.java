@@ -34,8 +34,7 @@ public class KafkaListeners {
       LocationDataRepository locationDataRepository,
       GenerationRepository generationRepository,
       MerchantRepository merchantRepository,
-      PointOfInterestRepository pointOfInterestRepository
-  ) {
+      PointOfInterestRepository pointOfInterestRepository) {
     this.chatLanguageModel = chatLanguageModel;
     this.userRepository = userRepository;
     this.sensorRepository = sensorRepository;
@@ -54,7 +53,6 @@ public class KafkaListeners {
   @KafkaListener(topics = "gps-data", groupId = "spring")
   void listener(String data) throws JsonProcessingException {
     JsonNode jsonNode = mapper.readTree(data);
-    String test = chatLanguageModel.generate("Write hello world");
     int userId = jsonNode.get("sensorId").asInt();
     Long rentId = jsonNode.get("rentId").asLong();
     float latitude = (float) jsonNode.get("latitude").asDouble();
@@ -74,13 +72,19 @@ public class KafkaListeners {
                     .build())
             .getId();
 
-    generationRepository.save(
-        new GenerationBuilder()
-            .setAdv(test)
-            .setLocationData(
-                locationDataRepository
-                    .findById(locationDataId)
-                    .orElseThrow(() -> new RuntimeException("No location data found")))
-            .build());
+    pointOfInterestRepository
+        .nearbyPointOfInterest(latitude, longitude, 50)
+        .ifPresent(
+            pointOfInterest -> {
+              String test = chatLanguageModel.generate("Write hello world"); //TODO: capire cosa generare
+              generationRepository.save(
+                  new GenerationBuilder()
+                      .setAdv(test)
+                      .setLocationData(
+                          locationDataRepository
+                              .findById(locationDataId)
+                              .orElseThrow(() -> new RuntimeException("No location data found")))
+                      .build());
+            });
   }
 }
