@@ -1,7 +1,0 @@
-node_modules
-
-.DS_STORE
-
-
-# grafana plugins that are downloaded from the docker-compose file
-data/grafana/plugins
