@@ -1,0 +1,31 @@
+name: Create Spring Boot Artifact
+
+on: push
+
+jobs:
+  build:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout codebase
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up Java
+        uses: actions/setup-java@v4.6.0
+        with:
+          java-version: "23"
+          distribution: "temurin"
+          cache: "maven"
+
+      - run: docker compose up -d
+
+      - run: mvn clean package
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spring-boot-artifact
+          retention-days: 30
+          path: target/*.jar
