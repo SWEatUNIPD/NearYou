@@ -1,6 +1,9 @@
 name: Create Spring Boot Artifact
 
-on: push
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   build:
