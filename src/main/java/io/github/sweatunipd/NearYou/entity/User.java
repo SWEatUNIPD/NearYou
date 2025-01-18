@@ -1,12 +1,10 @@
 package io.github.sweatunipd.NearYou.entity;
 
 import jakarta.persistence.*;
-import org.jetbrains.annotations.Contract;
 
 @Entity(name = "users")
 public class User {
-  @Id
-  private String email;
+  @Id private String email;
 
   @Column(nullable = false)
   private String name;
@@ -21,7 +19,7 @@ public class User {
   @Column(nullable = false)
   private int age;
 
-  protected User() {} //Thx Intellij
+  protected User() {} // Thx Intellij
 
   private User(UserBuilder builder) {
     this.email = builder.email;
@@ -83,7 +81,7 @@ public class User {
       return this;
     }
 
-    public User build(){
+    public User build() {
       return new User(this);
     }
   }

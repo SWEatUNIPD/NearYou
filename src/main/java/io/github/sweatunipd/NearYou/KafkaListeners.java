@@ -7,10 +7,10 @@ import dev.langchain4j.model.chat.ChatLanguageModel;
 import io.github.sweatunipd.NearYou.entity.Generation.GenerationBuilder;
 import io.github.sweatunipd.NearYou.entity.LocationData.LocationDataBuilder;
 import io.github.sweatunipd.NearYou.repository.*;
+import java.sql.Timestamp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import java.sql.Timestamp;
 
 @Component
 public class KafkaListeners {
@@ -76,7 +76,8 @@ public class KafkaListeners {
         .nearbyPointOfInterest(latitude, longitude, 50)
         .ifPresent(
             pointOfInterest -> {
-              String test = chatLanguageModel.generate("Write hello world"); //TODO: capire cosa generare
+              String test =
+                  chatLanguageModel.generate("Write hello world"); // TODO: capire cosa generare
               generationRepository.save(
                   new GenerationBuilder()
                       .setAdv(test)

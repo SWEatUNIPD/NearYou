@@ -20,8 +20,7 @@ public class Merchant {
     this.vat = builder.vat;
   }
 
-  protected Merchant() {
-  }
+  protected Merchant() {}
 
   public String getActivityName() {
     return activityName;

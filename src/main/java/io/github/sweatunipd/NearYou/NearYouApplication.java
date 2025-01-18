@@ -7,12 +7,11 @@ import io.github.sweatunipd.NearYou.entity.Rent.RentBuilder;
 import io.github.sweatunipd.NearYou.entity.Sensor.SensorBuilder;
 import io.github.sweatunipd.NearYou.entity.User.UserBuilder;
 import io.github.sweatunipd.NearYou.repository.*;
+import java.sql.Timestamp;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-
-import java.sql.Timestamp;
 
 @SpringBootApplication
 public class NearYouApplication {
@@ -29,11 +28,11 @@ public class NearYouApplication {
 
   @Bean
   CommandLineRunner commandLineRunner(
-          UserRepository userRepository,
-          SensorRepository sensorRepository,
-          RentRepository rentRepository,
-          MerchantRepository merchantRepository,
-          PointOfInterestRepository poiRepository) {
+      UserRepository userRepository,
+      SensorRepository sensorRepository,
+      RentRepository rentRepository,
+      MerchantRepository merchantRepository,
+      PointOfInterestRepository poiRepository) {
 
     return args -> {
       addUser(userRepository);
@@ -54,32 +53,43 @@ public class NearYouApplication {
             .build());
   }
 
-
   public void addSensor(SensorRepository sensorRepository) {
     sensorRepository.save(new SensorBuilder().build());
   }
-
 
   public void addRent(
       UserRepository userRepository,
       SensorRepository sensorRepository,
       RentRepository rentRepository) {
     Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-    rentRepository.save(new RentBuilder()
+    rentRepository.save(
+        new RentBuilder()
             .setStartTime(timestamp)
             .setUser(
-                    userRepository
-                            .findById("merjakla03@gmail.com")
-                            .orElseThrow(() -> new IllegalArgumentException("Problem 1")))
+                userRepository
+                    .findById("merjakla03@gmail.com")
+                    .orElseThrow(() -> new IllegalArgumentException("Problem 1")))
             .setSensor(
-                    sensorRepository
-                            .findById(1)
-                            .orElseThrow(() -> new IllegalArgumentException("Problem 2")))
+                sensorRepository
+                    .findById(1)
+                    .orElseThrow(() -> new IllegalArgumentException("Problem 2")))
             .build());
   }
 
-  public void addPOI(MerchantRepository merchantRepository, PointOfInterestRepository poiRepository) {
-    merchantRepository.save(new MerchantBuilder().setEmail("info@acme.com").setVat("IT010101").setActivityName("ACME").build());
-    poiRepository.save(new PointOfInterestBuilder().setLatitude(45.38631f).setLongitude(11.86328f).setMerchant(merchantRepository.findById("IT010101").orElseThrow(IllegalArgumentException::new)).build());
+  public void addPOI(
+      MerchantRepository merchantRepository, PointOfInterestRepository poiRepository) {
+    merchantRepository.save(
+        new MerchantBuilder()
+            .setEmail("info@acme.com")
+            .setVat("IT010101")
+            .setActivityName("ACME")
+            .build());
+    poiRepository.save(
+        new PointOfInterestBuilder()
+            .setLatitude(45.38631f)
+            .setLongitude(11.86328f)
+            .setMerchant(
+                merchantRepository.findById("IT010101").orElseThrow(IllegalArgumentException::new))
+            .build());
   }
 }

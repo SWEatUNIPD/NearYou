@@ -8,10 +8,9 @@ public class Sensor {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private int id;
 
-  protected Sensor(){}
+  protected Sensor() {}
 
-  private Sensor(SensorBuilder sensorBuilder) {
-  }
+  private Sensor(SensorBuilder sensorBuilder) {}
 
   public int getId() {
     return id;

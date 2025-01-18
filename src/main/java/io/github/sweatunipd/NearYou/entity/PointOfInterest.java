@@ -1,7 +1,6 @@
 package io.github.sweatunipd.NearYou.entity;
 
 import jakarta.persistence.*;
-
 import java.awt.*;
 
 @Entity(name = "points_of_interest")
@@ -27,7 +26,7 @@ public class PointOfInterest {
     this.merchant = builder.merchant;
   }
 
-  protected PointOfInterest(){}
+  protected PointOfInterest() {}
 
   public int getId() {
     return id;

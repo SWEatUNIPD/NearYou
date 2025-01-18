@@ -1,7 +1,6 @@
 package io.github.sweatunipd.NearYou.entity;
 
 import jakarta.persistence.*;
-import java.io.Serializable;
 import java.sql.Timestamp;
 
 @Entity(name = "location_datas")
@@ -31,8 +30,7 @@ public class LocationData {
     this.longitude = builder.longitude;
   }
 
-  protected LocationData() {
-  }
+  protected LocationData() {}
 
   public Timestamp getFetchTime() {
     return fetchTime;
