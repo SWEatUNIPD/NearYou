@@ -1,10 +1,10 @@
-import { Kafka, Partitioners } from "kafkajs";
-import fs from "fs";
-import { TrackSimulator } from "./tracks-simulator.js";
+import { Kafka, Partitioners } from 'kafkajs';
+import fs from 'fs';
+import { TrackSimulator } from './tracks-simulator.js';
 
 const kafka = new Kafka({
-  clientId: "producer1",
-  brokers: ["localhost:9094"],
+  clientId: 'producer1',
+  brokers: ['localhost:9094'],
 });
 
 const producer = kafka.producer({
@@ -20,7 +20,7 @@ const sendMessage = async (sensorId, retrievedTime, lat, lon) => {
   return (
     producer
       .send({
-        topic: "gps-data",
+        topic: 'gps-data',
         messages: [
           {
             value: JSON.stringify({
@@ -42,13 +42,13 @@ async function run() {
   // const trkSim = new TrackSimulator(activeSensorIdList);
   // await trkSim.run();
 
-  const sensorDataFile = fs.readFileSync("./sensor_data/sensor-1.txt", "utf-8");
+  const sensorDataFile = fs.readFileSync('./sensor_data/sensor-1.txt', 'utf-8');
   const lines = sensorDataFile.split(/\r?\n/);
   let currentIndex = 0;
   await producer.connect();
   const intervalId = setInterval(() => {
     if (currentIndex < lines.length - 1) {
-      const values = lines[currentIndex].split(",");
+      const values = lines[currentIndex].split(',');
       sendMessage(values[0], values[1], values[2], values[3]);
       currentIndex++;
     } else {
