@@ -6,7 +6,9 @@ jobs:
         runs-on: ubuntu-latest
         steps:
           - name: Check Java linting with Spotless
-            run: mvn spotless:check
+            run: |
+              mvn clean install
+              mvn spotless:check
           - name: Check Typescript linting with Prettier
             run: |
               cd client
