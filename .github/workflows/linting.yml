@@ -1,0 +1,14 @@
+name: Check linting of codebase
+on:
+    push
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Check Java linting with Spotless
+            run: mvn spotless:check
+          - name: Check Typescript linting with Prettier
+            run: |
+              cd client
+              npm ci
+              npm run check-lint

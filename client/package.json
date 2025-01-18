@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "prettier --write",
+    "lint": "prettier . --write",
+    "check-lint": "prettier . --check",
     "producer": "tsx producer.ts"
   },
   "author": "",
