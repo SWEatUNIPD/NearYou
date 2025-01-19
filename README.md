@@ -40,8 +40,8 @@ npm run producer
 
 | Nominativo        | Matricola |
 | :---------------- | :-------: |
-| Andrea Precoma    |  2068227  |
 | Andrea Perozzo    |  2082849  |
+| Andrea Precoma    |  2068227  |
 | Davide Marin      |  2068234  |
 | Davide Martinelli |  2034341  |
 | Davide Picello    |  2034825  |
