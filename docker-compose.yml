@@ -22,7 +22,6 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=adminadminadmin
 
-
   pgadmin:
     image: dpage/pgadmin4
     container_name: pgadmin4_container
@@ -36,7 +35,7 @@ services:
       - ./data/pgadmin:/var/lib/pgadmin
 
   spring-backend:
-    image: nearyou-spring
+    image: spring-backend
     restart: always
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgis:5432/admin
@@ -62,3 +61,11 @@ services:
       - GF_INSTALL_PLUGINS=hamedkarbasi93-kafka-datasource
     volumes:
       - ./data/grafana:/var/lib/grafana
+
+  simulator:
+    image: simulator
+    environment:
+      - BROKER=kafka:9092
+    depends_on:
+      - kafka
+

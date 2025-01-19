@@ -4,7 +4,7 @@ import { TrackSimulator } from './tracks-simulator';
 
 const kafka: Kafka = new Kafka({
   clientId: 'producer1',
-  brokers: ['localhost:9094'],
+  brokers: [process.env.BROKER ?? 'localhost:9094'],
 });
 
 const producer = kafka.producer({
