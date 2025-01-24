@@ -33,13 +33,6 @@ Le tecnologie adottate da questo _Proof of Concept_  sono:
     ```
 4. Per accedere alla dashboard, collegarsi all'indirizzo [localhost:3000](http://localhost:3000) oppure [127.0.0.1:3000](http://127.0.0.1:3000) con lo username `admin` e la password `admin` (il sistema chiederà di cambiare la password in quanto è stata mantenuta la default di Grafana, questo passaggio è skippabile).
 
-## Come avviare il generatore di posizione
-Posizionarsi all'interno della cartella `client` e procedere all'installazione delle dipendenze e all'avvio del simulatore:
-```sh
-npm i
-npm run producer
-```
-
 ## Componenti del gruppo
 
 | Nominativo        | Matricola |
