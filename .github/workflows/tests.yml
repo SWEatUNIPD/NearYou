@@ -13,5 +13,5 @@ jobs:
                   distribution: 'temurin'
                   java-version: 23
                   cache: 'maven'
-            - name: Run tests
-              run: mvn test
+            - name: Build and Test with Maven
+              run: mvn clean package
