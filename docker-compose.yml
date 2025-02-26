@@ -34,21 +34,21 @@ services:
     volumes:
       - ./data/pgadmin:/var/lib/pgadmin
 
-  spring-backend:
-    image: spring-backend
-    restart: always
-    environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgis:5432/admin
-      - SPRING_DATASOURCE_USERNAME=admin
-      - SPRING_DATASOURCE_PASSWORD=adminadminadmin
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
-      - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
-      - LANGCHAIN4J_OPEN-AI_CHAT-MODEL_API-key=demo
-      - LANGCHAIN4J_OPEN-AI_CHAT-MODEL_MODEL-NAME=gpt-4o-mini
-    depends_on:
-      - kafka
-      - postgis
+  # spring-backend:
+  #   image: spring-backend
+  #   restart: always
+  #   environment:
+  #     - SPRING_DATASOURCE_URL=jdbc:postgresql://postgis:5432/admin
+  #     - SPRING_DATASOURCE_USERNAME=admin
+  #     - SPRING_DATASOURCE_PASSWORD=adminadminadmin
+  #     - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:9092
+  #     - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.PostgreSQLDialect
+  #     - SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL=true
+  #     - LANGCHAIN4J_OPEN-AI_CHAT-MODEL_API-key=demo
+  #     - LANGCHAIN4J_OPEN-AI_CHAT-MODEL_MODEL-NAME=gpt-4o-mini
+  #   depends_on:
+  #     - kafka
+  #     - postgis
 
   grafana:
     image: grafana/grafana
@@ -58,10 +58,10 @@ services:
     volumes:
       - ./data/grafana:/var/lib/grafana
 
-  simulator:
-    image: simulator
-    environment:
-      - BROKER=kafka:9092
-    depends_on:
-      - kafka
+  # simulator:
+  #   image: simulator
+  #   environment:
+  #     - BROKER=kafka:9092
+  #   depends_on:
+  #     - kafka
 
