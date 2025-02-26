@@ -1,7 +1,7 @@
 name: Spring CI with Maven
 on:
     push:
-        branches: [ ** ]
+        branches: [ '**' ]
 jobs:
     build:
         runs-on: ubuntu-latest
