@@ -1,8 +1,6 @@
 package io.github.sweatunipd.NearYou.domain.model;
 import jakarta.persistence.*;
 
-import java.sql.Timestamp;
-
 @Entity(name = "rents")
 public class Rent {
     @Id
@@ -10,7 +8,7 @@ public class Rent {
     @Column(name= "id")
     private Long id;
 
-    @Column(nullable = false, name = "rentId")
+    @Column(nullable = false, name = "rent_id")
     private int rentId;
 
     @Column(nullable = false, name = "latitude")

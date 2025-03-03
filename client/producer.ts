@@ -11,36 +11,36 @@ const producer = kafka.producer({
     createPartitioner: Partitioners.DefaultPartitioner,
 })
 
-const messagese= [];
-for(let i=0;i<10000;i++){
-    messagese.push({ value: JSON.stringify({"rentId": 1, "latitude": 78.12321, "longitude":78.1213123}) });
+const arr = [];
+for (let i = 0; i < 10000; i++) {
+    arr.push({ value: JSON.stringify({"rentId": 1, "latitude": 78.12321, "longitude":78.1213123}) });
 }
 
 await producer.connect()
 await producer.send({
     topic: 'gps-data',
-    messages: messagese,
+    messages: arr,
 })
-await producer.send({
-    topic: 'gps-data',
-    messages: messagese,
-})
-await producer.send({
-    topic: 'gps-data',
-    messages: messagese,
-})
-await producer.send({
-    topic: 'gps-data',
-    messages: messagese,
-})
-await producer.send({
-    topic: 'gps-data',
-    messages: messagese,
-})
-await producer.send({
-    topic: 'gps-data',
-    messages: messagese,
-})
+// await producer.send({
+//     topic: 'gps-data',
+//     messages: arr,
+// })
+// await producer.send({
+//     topic: 'gps-data',
+//     messages: arr,
+// })
+// await producer.send({
+//     topic: 'gps-data',
+//     messages: arr,
+// })
+// await producer.send({
+//     topic: 'gps-data',
+//     messages: arr,
+// })
+// await producer.send({
+//     topic: 'gps-data',
+//     messages: arr,
+// })
 
 await producer.disconnect()
 

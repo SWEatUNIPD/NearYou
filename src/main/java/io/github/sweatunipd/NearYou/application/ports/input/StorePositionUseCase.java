@@ -5,5 +5,5 @@ import io.github.sweatunipd.NearYou.domain.model.GPSDataCmd;
 import java.util.List;
 
 public interface StorePositionUseCase {
-    public void storePosition(GPSDataCmd data);
+    public void storePosition(List<GPSDataCmd> cmds);
 }
