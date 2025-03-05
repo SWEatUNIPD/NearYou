@@ -1,0 +1,3 @@
+interface RentObserver {
+    update(): void;
+}
