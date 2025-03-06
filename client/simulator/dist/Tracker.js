@@ -10,62 +10,47 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Tracker = void 0;
-const polyline = require("@mapbox/polyline");
-const GeoPoint_1 = require("./GeoPoint");
+const APIGateway_1 = require("./APIGateway");
 const TrackerSubject_1 = require("./TrackerSubject");
+const Producer_1 = require("./Producer");
 class Tracker extends TrackerSubject_1.TrackerSubject {
-    constructor(id) {
+    constructor(id, kafkaTopic) {
         super();
-        this.mapCenter = new GeoPoint_1.GeoPoint(45.406434, 11.876761);
-        this.mapRadiusKm = 3;
-        this.maxNumTrackPoints = 1000;
+        this.sendingIntervalMilliseconds = 3000;
         this.id = id;
+        this.kafkaTopic = kafkaTopic;
     }
     activate() {
         return __awaiter(this, void 0, void 0, function* () {
-            const radiusGeoPoint = GeoPoint_1.GeoPoint.radiusKmToGeoPoint(this.mapRadiusKm);
-            const startGeoPoint = this.mapCenter.generateRandomPoint(radiusGeoPoint);
-            const destGeoPoint = this.mapCenter.generateRandomPoint(radiusGeoPoint);
-            const trackPoints = yield this.fetchTrack(startGeoPoint, destGeoPoint);
-            yield this.move(trackPoints);
-        });
-    }
-    fetchTrack(startGeoPoint, destGeoPoint) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const osrmUrl = 'http://router.project-osrm.org/route/v1/cycling';
-            const requestUrl = `${osrmUrl}/${startGeoPoint.getLongitude()},${startGeoPoint.getLatitude()};${destGeoPoint.getLongitude()},${destGeoPoint.getLatitude()}`;
-            const response = yield fetch(requestUrl + '?overview=full&geometries=polyline');
-            if (!response.ok) {
-                throw new Error(`Request error: ${response.status} - ${yield response.text()}`);
-            }
-            const routeData = yield response.json();
-            const encodedPolyline = routeData.routes[0].geometry;
-            const trackPoints = polyline.decode(encodedPolyline);
-            let sampledPoints;
-            if (this.maxNumTrackPoints < trackPoints.length) {
-                const step = Math.floor(trackPoints.length / this.maxNumTrackPoints);
-                sampledPoints = trackPoints
-                    .filter((_, index) => index % step == 0)
-                    .slice(0, this.maxNumTrackPoints);
-            }
-            else {
-                sampledPoints = trackPoints;
-            }
-            return sampledPoints.map(([latitude, longitude]) => {
-                {
-                    return new GeoPoint_1.GeoPoint(latitude, longitude);
-                }
-            });
+            let apiGateway = new APIGateway_1.APIGateway();
+            let trackPoints = yield apiGateway.fetchTrack();
+            this.move(trackPoints);
         });
     }
     move(trackPoints) {
         return __awaiter(this, void 0, void 0, function* () {
-            // consume path points
-            console.log("start move tracker " + this.id);
-            this.notify();
+            (0, Producer_1.connectProducer)();
+            let currIndex = 0;
+            const intervalId = setInterval(() => {
+                if (currIndex < trackPoints.length - 1) {
+                    let trackerId = this.id;
+                    let latitude = trackPoints[currIndex].getLatitude();
+                    let longitude = trackPoints[currIndex].getLongitude();
+                    let message = JSON.stringify({
+                        trackerId,
+                        latitude,
+                        longitude
+                    });
+                    (0, Producer_1.sendMessage)(this.kafkaTopic, message);
+                    currIndex++;
+                }
+                else {
+                    clearInterval(intervalId);
+                }
+            }, this.sendingIntervalMilliseconds);
+            (0, Producer_1.disconnectProducer)();
+            this.notifyTrackEnded();
         });
-    }
-    receiveAdv(adv) {
     }
 }
 exports.Tracker = Tracker;

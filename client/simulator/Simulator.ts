@@ -10,13 +10,12 @@ export class Simulator implements SimulatorObserver {
 
     startSimulation(): void {
         this.rentList.forEach(rent => {
-            console.log("start simulation");
             rent.register(this);
             rent.activate();
         });
     }
 
-    update(id: string): void {
+    updateRentEnded(id: string): void {
         const endedRentIndex = this.rentList.findIndex((trk) => trk.getId() === id);
         if (endedRentIndex !== -1) {
             this.rentList.splice(endedRentIndex, 1);

@@ -1,8 +1,8 @@
 import { RentSubject } from './RentSubject'
-import { SimulatorObserver } from './SimulatorObserver'
+import { RentObserver } from './RentObserver'
 import { Tracker } from './Tracker'
 
-export class Rent extends RentSubject implements SimulatorObserver {
+export class Rent extends RentSubject implements RentObserver {
     private id: string;
     private tracker: Tracker;
 
@@ -18,10 +18,8 @@ export class Rent extends RentSubject implements SimulatorObserver {
         this.tracker.activate();
     }
 
-    update(): void {
-        // end the rent
-
-        this.notify(this.id);
+    updateTrackEnded(): void {
+        this.notifyRentEnded(this.id);
     }
 
     getId(): string {

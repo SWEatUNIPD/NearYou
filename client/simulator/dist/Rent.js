@@ -12,9 +12,8 @@ class Rent extends RentSubject_1.RentSubject {
         this.tracker.register(this);
         this.tracker.activate();
     }
-    update() {
-        // end the rent
-        this.notify(this.id);
+    updateTrackEnded() {
+        this.notifyRentEnded(this.id);
     }
     getId() {
         return this.id;

@@ -5,9 +5,8 @@ class TrackerSubject {
     register(rentObserver) {
         this.rentObserver = rentObserver;
     }
-    // abstract async activate(): Promise<void>;
-    notify() {
-        this.rentObserver.update();
+    notifyTrackEnded() {
+        this.rentObserver.updateTrackEnded();
     }
 }
 exports.TrackerSubject = TrackerSubject;

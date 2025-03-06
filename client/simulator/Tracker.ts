@@ -1,73 +1,52 @@
-import polyline = require('@mapbox/polyline');
-import { GeoPoint } from './GeoPoint';
+import { APIGateway } from './APIGateway';
+import { GeoPoint } from './GeoPoint'
 import { TrackerSubject } from './TrackerSubject'
+import { connectProducer, disconnectProducer, sendMessage } from './Producer';
 
 export class Tracker extends TrackerSubject {
-    private readonly mapCenter: GeoPoint = new GeoPoint(45.406434, 11.876761);
-    private readonly mapRadiusKm: number = 3;
-    private readonly maxNumTrackPoints: number = 1000;
-
+    private readonly sendingIntervalMilliseconds = 3000;
     private id: string;
+    private kafkaTopic: string;
 
-    constructor(id: string) {
+    constructor(id: string, kafkaTopic: string) {
         super();
 
         this.id = id;
+        this.kafkaTopic = kafkaTopic;
     }
 
     async activate(): Promise<void> {
-        const radiusGeoPoint = GeoPoint.radiusKmToGeoPoint(this.mapRadiusKm);
-        const startGeoPoint = this.mapCenter.generateRandomPoint(radiusGeoPoint);
-        const destGeoPoint = this.mapCenter.generateRandomPoint(radiusGeoPoint);
+        let apiGateway = new APIGateway();
+        let trackPoints = await apiGateway.fetchTrack();
 
-        const trackPoints = await this.fetchTrack(startGeoPoint, destGeoPoint);
-        await this.move(trackPoints);
-    }
-
-    private async fetchTrack(startGeoPoint: GeoPoint, destGeoPoint: GeoPoint): Promise<GeoPoint[]> {
-        const osrmUrl = 'http://router.project-osrm.org/route/v1/cycling';
-        const requestUrl = `${osrmUrl}/${startGeoPoint.getLongitude()},${startGeoPoint.getLatitude()};${destGeoPoint.getLongitude()},${destGeoPoint.getLatitude()}`;
-
-        const response = await fetch(
-            requestUrl + '?overview=full&geometries=polyline'
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                `Request error: ${response.status} - ${await response.text()}`
-            );
-        }
-
-        const routeData = await response.json();
-        const encodedPolyline = routeData.routes[0].geometry;
-
-        const trackPoints = polyline.decode(encodedPolyline);
-
-        let sampledPoints;
-        if (this.maxNumTrackPoints < trackPoints.length) {
-            const step = Math.floor(trackPoints.length / this.maxNumTrackPoints);
-            sampledPoints = trackPoints
-                .filter((_, index) => index % step == 0)
-                .slice(0, this.maxNumTrackPoints);
-        } else {
-            sampledPoints = trackPoints;
-        }
-
-        return sampledPoints.map(([latitude, longitude]): GeoPoint => {
-            {
-                return new GeoPoint(latitude, longitude);
-            }
-        });
+        this.move(trackPoints);
     }
 
     private async move(trackPoints: GeoPoint[]): Promise<void> {
-        // consume path points
-        console.log("start move tracker " + this.id);
+        connectProducer();
 
-        this.notify();
-    }
+        let currIndex = 0;
+        const intervalId = setInterval(() => {
+            if (currIndex < trackPoints.length - 1) {
+                let trackerId = this.id;
+                let latitude = trackPoints[currIndex].getLatitude();
+                let longitude = trackPoints[currIndex].getLongitude();
+                let message = JSON.stringify({
+                    trackerId,
+                    latitude,
+                    longitude
+                });
 
-    private receiveAdv(adv: string): void {
+                sendMessage(this.kafkaTopic, message);
 
+                currIndex++;
+            } else {
+                clearInterval(intervalId);
+            }
+        }, this.sendingIntervalMilliseconds);
+
+        disconnectProducer();
+
+        this.notifyTrackEnded();
     }
 }

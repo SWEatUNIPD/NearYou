@@ -7,9 +7,7 @@ export abstract class TrackerSubject {
         this.rentObserver = rentObserver;
     }
 
-    // abstract async activate(): Promise<void>;
-
-    protected notify(): void {
-        this.rentObserver.update();
+    protected notifyTrackEnded(): void {
+        this.rentObserver.updateTrackEnded();
     }
 }

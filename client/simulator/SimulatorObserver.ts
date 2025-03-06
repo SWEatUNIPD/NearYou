@@ -1,3 +1,3 @@
 export interface SimulatorObserver {
-    update(id: string): void;
+    updateRentEnded(id: string): void;
 }

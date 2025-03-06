@@ -5,8 +5,8 @@ class RentSubject {
     register(simulatorObserver) {
         this.simulatorObserver = simulatorObserver;
     }
-    notify(id) {
-        this.simulatorObserver.update(id);
+    notifyRentEnded(id) {
+        this.simulatorObserver.updateRentEnded(id);
     }
 }
 exports.RentSubject = RentSubject;

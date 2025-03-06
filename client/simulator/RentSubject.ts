@@ -7,9 +7,7 @@ export abstract class RentSubject {
         this.simulatorObserver = simulatorObserver;
     }
 
-    abstract activate(): void;
-
-    protected notify(id: string): void {
-        this.simulatorObserver.update(id);
+    protected notifyRentEnded(id: string): void {
+        this.simulatorObserver.updateRentEnded(id);
     }
 }

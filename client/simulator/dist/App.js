@@ -7,7 +7,7 @@ const Simulator_1 = require("./Simulator");
 const INIT_RENT_COUNT = 3;
 let rentList = [];
 for (let i = 0; i < INIT_RENT_COUNT; i++) {
-    let trk = new Tracker_1.Tracker((0, uuid_1.v4)());
+    let trk = new Tracker_1.Tracker((0, uuid_1.v4)(), "gps-data");
     let rent = new Rent_1.Rent((0, uuid_1.v4)(), trk);
     rentList.push(rent);
 }

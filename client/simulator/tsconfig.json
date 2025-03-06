@@ -3,7 +3,8 @@
         "target": "ES2015",
         "outDir": "dist",
         "module": "commonjs",
-        "sourceMap": true
+        "sourceMap": true,
+        "esModuleInterop": true,
     },
     "include": [
         "./*.ts"
