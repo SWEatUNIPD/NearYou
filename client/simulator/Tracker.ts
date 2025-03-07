@@ -1,43 +1,60 @@
-import { APIGateway } from './APIGateway';
+import { TrackFetcher } from './TrackFetcher';
 import { GeoPoint } from './GeoPoint'
 import { TrackerSubject } from './TrackerSubject'
-import { connectProducer, disconnectProducer, sendMessage } from './Producer';
+// import { connectProducer, disconnectProducer, sendMessage } from './Producer';
+import { KafkaManager } from './KafkaManager';
+import { EachMessagePayload, Producer } from 'kafkajs';
 
 export class Tracker extends TrackerSubject {
     private readonly sendingIntervalMilliseconds = 3000;
     private id: string;
-    private kafkaTopic: string;
+    private kafkaManager: KafkaManager;
 
-    constructor(id: string, kafkaTopic: string) {
+    constructor(id: string, kafkaManager: KafkaManager) {
         super();
 
         this.id = id;
-        this.kafkaTopic = kafkaTopic;
+        this.kafkaManager = kafkaManager;
     }
 
     async activate(): Promise<void> {
-        let apiGateway = new APIGateway();
-        let trackPoints = await apiGateway.fetchTrack();
+        await this.listenToAdv();
 
-        this.move(trackPoints);
+        let trackFetcher = new TrackFetcher();
+        let trackPoints = await trackFetcher.fetchTrack();
+        await this.move(trackPoints);
+    }
+
+    private async listenToAdv(): Promise<void> {
+        const eachMessageHandler = async (payload: EachMessagePayload) => {
+            const { topic, partition, message } = payload;
+            console.log({
+                topic,
+                partition,
+                key: message.key?.toString(),
+                value: message.value?.toString(),
+            });
+        };
+
+        await this.kafkaManager.initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
     }
 
     private async move(trackPoints: GeoPoint[]): Promise<void> {
-        connectProducer();
-
+        const producer: Producer = await this.kafkaManager.initAndConnectProducer();
+        
         let currIndex = 0;
         const intervalId = setInterval(() => {
             if (currIndex < trackPoints.length - 1) {
-                let trackerId = this.id;
-                let latitude = trackPoints[currIndex].getLatitude();
-                let longitude = trackPoints[currIndex].getLongitude();
-                let message = JSON.stringify({
+                let trackerId: string = this.id;
+                let latitude: number = trackPoints[currIndex].getLatitude();
+                let longitude: number = trackPoints[currIndex].getLongitude();
+                let message: string = JSON.stringify({
                     trackerId,
                     latitude,
                     longitude
                 });
 
-                sendMessage(this.kafkaTopic, message);
+                this.kafkaManager.sendMessage(producer, 'gps-data', message);
 
                 currIndex++;
             } else {
@@ -45,8 +62,34 @@ export class Tracker extends TrackerSubject {
             }
         }, this.sendingIntervalMilliseconds);
 
-        disconnectProducer();
+        await this.kafkaManager.disconnectProducer(producer);
 
         this.notifyTrackEnded();
+
+        // connectProducer();
+
+        // let currIndex = 0;
+        // const intervalId = setInterval(() => {
+        //     if (currIndex < trackPoints.length - 1) {
+        //         let trackerId = this.id;
+        //         let latitude = trackPoints[currIndex].getLatitude();
+        //         let longitude = trackPoints[currIndex].getLongitude();
+        //         let message = JSON.stringify({
+        //             trackerId,
+        //             latitude,
+        //             longitude
+        //         });
+
+        //         sendMessage(this.kafkaTopic, message);
+
+        //         currIndex++;
+        //     } else {
+        //         clearInterval(intervalId);
+        //     }
+        // }, this.sendingIntervalMilliseconds);
+
+        // disconnectProducer();
+
+        // this.notifyTrackEnded();
     }
 }

@@ -1,7 +1,7 @@
 import polyline from "@mapbox/polyline";
 import { GeoPoint } from "./GeoPoint";
 
-export class APIGateway {
+export class TrackFetcher {
     private readonly mapCenter = new GeoPoint(45.406434, 11.876761);
     private readonly mapRadiusKm = 3;
     private readonly maxNumTrackPoints = 1000;
