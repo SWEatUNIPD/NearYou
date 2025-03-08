@@ -1,9 +1,9 @@
 {
   "name": "client",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "App.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest",
     "lint": "prettier . --write",
     "check-lint": "prettier . --check",
     "app": "tsx App.ts"
@@ -21,6 +21,7 @@
     "@types/mapbox__polyline": "^1.0.5",
     "@types/node": "^22.10.2",
     "prettier": "^3.4.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "vitest": "^3.0.8"
   }
 }
