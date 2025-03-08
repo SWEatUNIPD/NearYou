@@ -16,9 +16,14 @@ export class Simulator implements SimulatorObserver {
     }
 
     updateRentEnded(id: string): void {
-        const endedRentIndex = this.rentList.findIndex((trk) => trk.getId() === id);
-        if (endedRentIndex !== -1) {
-            this.rentList.splice(endedRentIndex, 1);
+        const endedRentIndex = this.rentList.findIndex((trk) => trk.getId() == id);
+
+        if (endedRentIndex == -1) {
+            throw new Error(
+                `Rent with id '${id}' is ended but not found in list`
+            );
         }
+
+        this.rentList.splice(endedRentIndex, 1);
     }
 }

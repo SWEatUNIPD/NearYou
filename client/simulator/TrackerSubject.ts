@@ -8,6 +8,12 @@ export abstract class TrackerSubject {
     }
 
     protected notifyTrackEnded(): void {
+        if (this.rentObserver == null) {
+            throw new Error(
+                `Track ended notify error: rentObserver not initialized`
+            );
+        }
+
         this.rentObserver.updateTrackEnded();
     }
 }

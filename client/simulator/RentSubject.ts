@@ -8,6 +8,12 @@ export abstract class RentSubject {
     }
 
     protected notifyRentEnded(id: string): void {
+        if (this.simulatorObserver == null) {
+            throw new Error(
+                `Rent ended notify error: simulatorObserver not initialized`
+            );
+        }
+
         this.simulatorObserver.updateRentEnded(id);
     }
 }

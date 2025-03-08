@@ -40,7 +40,7 @@ export class Tracker extends TrackerSubject {
 
     private async move(trackPoints: GeoPoint[]): Promise<void> {
         const producer: Producer = await KafkaManager.getInstance().initAndConnectProducer();
-        
+
         let currIndex = 0;
         const intervalId = setInterval(() => {
             if (currIndex < trackPoints.length - 1) {
@@ -62,34 +62,10 @@ export class Tracker extends TrackerSubject {
         }, this.sendingIntervalMilliseconds);
 
         await KafkaManager.getInstance().disconnectProducer(producer);
-        await KafkaManager.getInstance().disconnectConsumer(this.consumer);
+        if (this.consumer != null) {
+            await KafkaManager.getInstance().disconnectConsumer(this.consumer);
+        }
 
         this.notifyTrackEnded();
-
-        // connectProducer();
-
-        // let currIndex = 0;
-        // const intervalId = setInterval(() => {
-        //     if (currIndex < trackPoints.length - 1) {
-        //         let trackerId = this.id;
-        //         let latitude = trackPoints[currIndex].getLatitude();
-        //         let longitude = trackPoints[currIndex].getLongitude();
-        //         let message = JSON.stringify({
-        //             trackerId,
-        //             latitude,
-        //             longitude
-        //         });
-
-        //         sendMessage(this.kafkaTopic, message);
-
-        //         currIndex++;
-        //     } else {
-        //         clearInterval(intervalId);
-        //     }
-        // }, this.sendingIntervalMilliseconds);
-
-        // disconnectProducer();
-
-        // this.notifyTrackEnded();
     }
 }

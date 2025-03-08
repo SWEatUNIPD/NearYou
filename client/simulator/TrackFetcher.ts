@@ -45,7 +45,7 @@ export class TrackFetcher {
 
         if (!response.ok) {
             throw new Error(
-                `Request error: ${response.status} - ${await response.text()}`
+                `Track request error: ${response.status} - ${await response.text()}`
             );
         }
 

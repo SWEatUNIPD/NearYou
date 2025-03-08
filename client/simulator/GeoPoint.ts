@@ -8,6 +8,14 @@ export class GeoPoint {
     }
 
     static radiusKmToGeoPoint(radiusKm: number): GeoPoint {
+        if (radiusKm > 10000) {
+            throw new Error(
+                `Radius too big, more than the distance between the equatore and the poles`
+            );
+        }
+
+        // WARNING: radius suggested less than 300km for accuracy reason
+
         const rLatDeg: number = radiusKm / 111;
         const rLonDeg: number = radiusKm / (111 * Math.cos(rLatDeg * (Math.PI / 180)));
         
