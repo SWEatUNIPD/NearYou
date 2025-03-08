@@ -38,3 +38,4 @@ node_modules
 ### Docker data ###
 /data/postgres
 /data/pgadmin
+/data/grafana/plugins
