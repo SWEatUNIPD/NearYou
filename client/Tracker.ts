@@ -1,19 +1,20 @@
+import { env } from './EnvManager';
 import { TrackFetcher } from './TrackFetcher';
-import { GeoPoint } from './GeoPoint'
-import { TrackerSubject } from './TrackerSubject'
-// import { connectProducer, disconnectProducer, sendMessage } from './Producer';
+import { GeoPoint } from './GeoPoint';
+import { TrackerSubject } from './TrackerSubject';
 import { KafkaManager } from './KafkaManager';
 import { Consumer, EachMessagePayload, Producer } from 'kafkajs';
 
 export class Tracker extends TrackerSubject {
-    private readonly sendingIntervalMilliseconds = 3000;
     private id: string;
-    private consumer: Consumer;
+    private consumer!: Consumer;
+    private sendingIntervalMilliseconds: number;
 
     constructor(id: string) {
         super();
 
         this.id = id;
+        this.sendingIntervalMilliseconds = Number(env.SENDING_INTERVAL_MILLISECONDS);
     }
 
     async activate(): Promise<void> {

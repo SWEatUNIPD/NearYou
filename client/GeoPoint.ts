@@ -14,7 +14,9 @@ export class GeoPoint {
             );
         }
 
-        // WARNING: radius suggested less than 300km for accuracy reason
+        if (radiusKm > 300) {
+            console.warn(`Radius suggested less than 300km for accuracy reasons, current radius is ${radiusKm}km`);
+        }
 
         const rLatDeg: number = radiusKm / 111;
         const rLonDeg: number = radiusKm / (111 * Math.cos(rLatDeg * (Math.PI / 180)));

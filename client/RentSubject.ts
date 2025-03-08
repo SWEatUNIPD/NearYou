@@ -1,7 +1,7 @@
 import { SimulatorObserver } from './SimulatorObserver';
 
 export abstract class RentSubject {
-    private simulatorObserver: SimulatorObserver;
+    private simulatorObserver!: SimulatorObserver;
 
     register(simulatorObserver: SimulatorObserver): void {
         this.simulatorObserver = simulatorObserver;

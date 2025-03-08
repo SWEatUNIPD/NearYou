@@ -1,3 +1,4 @@
+import { env } from './EnvManager';
 import { Consumer, ConsumerConfig, EachMessagePayload, Kafka, KafkaConfig, Message, Producer } from "kafkajs";
 
 export class KafkaManager {
@@ -6,7 +7,7 @@ export class KafkaManager {
 
     private constructor() {
         const kafkaConfig: KafkaConfig = {
-            clientId: 'simulator',
+            clientId: env.CLIENT_ID,
             brokers: [process.env.BROKER ?? 'localhost:9094']
         };
 
@@ -26,7 +27,9 @@ export class KafkaManager {
             await producer.connect();
             return producer;
         } catch (error) {
-            console.error('Failed to connect Kafka producer: ', error);
+            throw new Error(
+                `Failed to connect Kafka producer: ${error}`
+            );
         }
     }
 
@@ -34,7 +37,9 @@ export class KafkaManager {
         try {
             await producer.disconnect();
         } catch (error) {
-            console.error('Failed to disconnect Kafka producer: ', error);
+            throw new Error(
+                `Failed to disconnect Kafka producer: ${error}`
+            );
         }
     }
 
@@ -48,7 +53,9 @@ export class KafkaManager {
                 messages: [msg]
             })
         } catch (error) {
-            console.error('Failed to send message from Kafka producer: ', error);
+            throw new Error(
+                `Failed to send message from Kafka producer: ${error}`
+            );
         }
     }
 
@@ -71,7 +78,9 @@ export class KafkaManager {
             });
             return consumer;
         } catch (error) {
-            console.error('Failed to connect Kafka consumer: ', error);
+            throw new Error(
+                `Failed to connect Kafka consumer: ${error}`
+            );
         }
     }
 
@@ -79,7 +88,9 @@ export class KafkaManager {
         try {
             await consumer.disconnect();
         } catch (error) {
-            console.error('Failed to disconnect Kafka consumer: ', error);
+            throw new Error(
+                `Failed to disconnect Kafka consumer: ${error}`
+            );
         }
     }
 }

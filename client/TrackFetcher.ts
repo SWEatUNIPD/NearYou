@@ -1,10 +1,17 @@
+import { env } from './EnvManager';
 import polyline from "@mapbox/polyline";
 import { GeoPoint } from "./GeoPoint";
 
 export class TrackFetcher {
-    private readonly mapCenter = new GeoPoint(45.406434, 11.876761);
-    private readonly mapRadiusKm = 3;
-    private readonly maxNumTrackPoints = 1000;
+    private mapCenter: GeoPoint;
+    private mapRadiusKm: number;
+    private maxNumTrackPoints: number;
+
+    constructor() {
+        this.mapCenter = new GeoPoint(Number(env.MAP_CENTER_LAT), Number(env.MAP_CENTER_LON));
+        this.mapRadiusKm = Number(env.MAP_RADIUS_KM);
+        this.maxNumTrackPoints = Number(env.MAX_NUM_TRACK_POINTS);
+    }
 
     async fetchTrack(): Promise<GeoPoint[]> {
         const response = await this.request();
