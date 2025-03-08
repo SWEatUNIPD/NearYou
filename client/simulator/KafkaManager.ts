@@ -1,10 +1,23 @@
 import { Consumer, ConsumerConfig, EachMessagePayload, Kafka, KafkaConfig, Message, Producer } from "kafkajs";
 
 export class KafkaManager {
+    private static instance: KafkaManager;
     private kafka: Kafka;
 
-    constructor(kafkaConfig: KafkaConfig) {
+    private constructor() {
+        const kafkaConfig: KafkaConfig = {
+            clientId: 'simulator',
+            brokers: [process.env.BROKER ?? 'localhost:9094']
+        };
+
         this.kafka = new Kafka(kafkaConfig);
+    }
+
+    static getInstance(): KafkaManager {
+        if (this.instance == null) {
+            this.instance = new KafkaManager();
+        }
+        return this.instance;
     }
 
     async initAndConnectProducer(): Promise<Producer> {

@@ -3,18 +3,17 @@ import { GeoPoint } from './GeoPoint'
 import { TrackerSubject } from './TrackerSubject'
 // import { connectProducer, disconnectProducer, sendMessage } from './Producer';
 import { KafkaManager } from './KafkaManager';
-import { EachMessagePayload, Producer } from 'kafkajs';
+import { Consumer, EachMessagePayload, Producer } from 'kafkajs';
 
 export class Tracker extends TrackerSubject {
     private readonly sendingIntervalMilliseconds = 3000;
     private id: string;
-    private kafkaManager: KafkaManager;
+    private consumer: Consumer;
 
-    constructor(id: string, kafkaManager: KafkaManager) {
+    constructor(id: string) {
         super();
 
         this.id = id;
-        this.kafkaManager = kafkaManager;
     }
 
     async activate(): Promise<void> {
@@ -36,11 +35,11 @@ export class Tracker extends TrackerSubject {
             });
         };
 
-        await this.kafkaManager.initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
+        this.consumer = await KafkaManager.getInstance().initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
     }
 
     private async move(trackPoints: GeoPoint[]): Promise<void> {
-        const producer: Producer = await this.kafkaManager.initAndConnectProducer();
+        const producer: Producer = await KafkaManager.getInstance().initAndConnectProducer();
         
         let currIndex = 0;
         const intervalId = setInterval(() => {
@@ -54,7 +53,7 @@ export class Tracker extends TrackerSubject {
                     longitude
                 });
 
-                this.kafkaManager.sendMessage(producer, 'gps-data', message);
+                KafkaManager.getInstance().sendMessage(producer, 'gps-data', message);
 
                 currIndex++;
             } else {
@@ -62,7 +61,8 @@ export class Tracker extends TrackerSubject {
             }
         }, this.sendingIntervalMilliseconds);
 
-        await this.kafkaManager.disconnectProducer(producer);
+        await KafkaManager.getInstance().disconnectProducer(producer);
+        await KafkaManager.getInstance().disconnectConsumer(this.consumer);
 
         this.notifyTrackEnded();
 
