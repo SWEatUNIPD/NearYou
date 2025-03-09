@@ -43,8 +43,13 @@ export class Tracker extends TrackerSubject {
         const producer: Producer = await KafkaManager.getInstance().initAndConnectProducer();
 
         let currIndex = 0;
-        const intervalId = setInterval(() => {
+        const intervalId = setInterval(async () => {
             if (currIndex == trackPoints.length) {
+                await KafkaManager.getInstance().disconnectProducer(producer);
+                if (this.consumer != null) {
+                    await KafkaManager.getInstance().disconnectConsumer(this.consumer);
+                }
+                
                 clearInterval(intervalId);
             }
             
@@ -57,15 +62,11 @@ export class Tracker extends TrackerSubject {
                 longitude
             });
 
-            KafkaManager.getInstance().sendMessage(producer, 'gps-data', message);
+            await KafkaManager.getInstance().sendMessage(producer, 'gps-data', message);
 
             currIndex++;
         }, this.sendingIntervalMilliseconds);
 
-        await KafkaManager.getInstance().disconnectProducer(producer);
-        if (this.consumer != null) {
-            await KafkaManager.getInstance().disconnectConsumer(this.consumer);
-        }
 
         this.notifyTrackEnded();
     }
