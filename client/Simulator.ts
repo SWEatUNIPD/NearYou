@@ -19,7 +19,7 @@ export class Simulator implements SimulatorObserver {
         this.startRentsInRuntime();
     }
 
-    private startRentsInRuntime() {
+    private startRentsInRuntime(): void {
         const minInterval = 5;
         const maxInterval = 20;
         let randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
