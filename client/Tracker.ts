@@ -44,22 +44,22 @@ export class Tracker extends TrackerSubject {
 
         let currIndex = 0;
         const intervalId = setInterval(() => {
-            if (currIndex < trackPoints.length - 1) {
-                let trackerId: string = this.id;
-                let latitude: number = trackPoints[currIndex].getLatitude();
-                let longitude: number = trackPoints[currIndex].getLongitude();
-                let message: string = JSON.stringify({
-                    trackerId,
-                    latitude,
-                    longitude
-                });
-
-                KafkaManager.getInstance().sendMessage(producer, 'gps-data', message);
-
-                currIndex++;
-            } else {
+            if (currIndex == trackPoints.length) {
                 clearInterval(intervalId);
             }
+            
+            let trackerId: string = this.id;
+            let latitude: number = trackPoints[currIndex].getLatitude();
+            let longitude: number = trackPoints[currIndex].getLongitude();
+            let message: string = JSON.stringify({
+                trackerId,
+                latitude,
+                longitude
+            });
+
+            KafkaManager.getInstance().sendMessage(producer, 'gps-data', message);
+
+            currIndex++;
         }, this.sendingIntervalMilliseconds);
 
         await KafkaManager.getInstance().disconnectProducer(producer);

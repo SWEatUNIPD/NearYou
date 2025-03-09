@@ -9,11 +9,11 @@ const initRentCount = Number(env.INIT_RENT_COUNT);
 let rentList: Rent[] = [];
 
 for (let i = 0; i < initRentCount; i++) {
-    let trk = new Tracker(uuidv4());
-    let rent = new Rent(uuidv4(), trk);
+    const trk = new Tracker(uuidv4());
+    const rent = new Rent(uuidv4(), trk);
     rentList.push(rent);
 }
 
-let sim = new Simulator(rentList);
+const sim = new Simulator(rentList);
 
 sim.startSimulation();
