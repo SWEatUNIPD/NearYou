@@ -19,19 +19,7 @@ Le tecnologie adottate da questo _Proof of Concept_  sono:
 - Grafana come dashboard del sistema
 
 ## Come avviare e utilizzare il sistema
-1. Buildare l'immagine Docker del backend in Spring
-    ```sh
-    docker build -t spring-backend .
-    ```
-2. Buildare l'immagine Docker del simulatore (posizionandosi nella cartella `client` prima di tutto)
-    ```sh
-    docker build -t simulator .
-    ```
-3. Avviare il sistema tramite il Docker Compose
-    ```sh
-    docker compose up -d
-    ```
-4. Per accedere alla dashboard, collegarsi all'indirizzo [localhost:3000](http://localhost:3000) oppure [127.0.0.1:3000](http://127.0.0.1:3000) con lo username `admin` e la password `admin` (il sistema chiederà di cambiare la password in quanto è stata mantenuta la default di Grafana, questo passaggio è skippabile).
+TODO:
 
 ## Componenti del gruppo
 
