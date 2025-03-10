@@ -1,26 +1,33 @@
 {
   "name": "client",
   "version": "1.0.0",
-  "main": "index.js",
-  "type": "module",
+  "main": "App.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "prettier . --write",
-    "check-lint": "prettier . --check",
-    "producer": "tsx producer.ts"
+    "app": "tsx ./src/App.ts",
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint . --ext .ts"
   },
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
     "@mapbox/polyline": "^1.2.1",
+    "dotenv": "^16.4.7",
     "kafkajs": "^2.2.4",
-    "tsx": "^4.19.2"
+    "tsx": "^4.19.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.22.0",
     "@types/mapbox__polyline": "^1.0.5",
     "@types/node": "^22.10.2",
-    "prettier": "^3.4.2",
-    "typescript": "^5.7.2"
+    "@typescript-eslint/eslint-plugin": "^8.26.1",
+    "@typescript-eslint/parser": "^8.26.1",
+    "@vitest/coverage-v8": "^3.0.8",
+    "eslint": "^9.22.0",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.26.1",
+    "vitest": "^3.0.8"
   }
 }
