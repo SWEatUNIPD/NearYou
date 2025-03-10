@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "App.ts",
   "scripts": {
-    "app": "tsx App.ts",
+    "app": "tsx ./src/App.ts",
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "lint": "eslint . --ext .ts"
