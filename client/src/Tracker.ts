@@ -1,22 +1,26 @@
-import { env } from './EnvManager';
+import { env } from './config/EnvManager';
 import { TrackFetcher } from './TrackFetcher';
 import { GeoPoint } from './GeoPoint';
 import { TrackerSubject } from './TrackerSubject';
 import { KafkaManager } from './KafkaManager';
 import { Consumer, EachMessagePayload, Producer } from 'kafkajs';
+import { injectable } from 'inversify';
 
+@injectable()
+// Classe che rappresenta un tracker che invia dati GPS a un broker Kafka
 export class Tracker extends TrackerSubject {
-    private id: string;
     private consumer!: Consumer;
     private sendingIntervalMilliseconds: number;
 
-    constructor(id: string) {
+    constructor(
+        private id: string
+    ) {
         super();
-
-        this.id = id;
+        
         this.sendingIntervalMilliseconds = Number(env.SENDING_INTERVAL_MILLISECONDS);
     }
 
+    // Metodo per attivare il tracker
     async activate(): Promise<void> {
         await this.listenToAdv();
 
@@ -25,6 +29,7 @@ export class Tracker extends TrackerSubject {
         await this.move(trackPoints);
     }
 
+    // Metodo privato per ascoltare i messaggi di advertising
     private async listenToAdv(): Promise<void> {
         const eachMessageHandler = async (payload: EachMessagePayload) => {
             const { topic, partition, message } = payload;
@@ -39,6 +44,7 @@ export class Tracker extends TrackerSubject {
         this.consumer = await KafkaManager.getInstance().initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
     }
 
+    // Metodo privato per muovere il tracker lungo i punti della traccia
     private async move(trackPoints: GeoPoint[]): Promise<void> {
         const producer: Producer = await KafkaManager.getInstance().initAndConnectProducer();
 
@@ -51,6 +57,7 @@ export class Tracker extends TrackerSubject {
                 }
                 
                 clearInterval(intervalId);
+                this.notifyTrackEnded();
             }
             
             let trackerId: string = this.id;
@@ -66,8 +73,5 @@ export class Tracker extends TrackerSubject {
 
             currIndex++;
         }, this.sendingIntervalMilliseconds);
-
-
-        this.notifyTrackEnded();
     }
 }

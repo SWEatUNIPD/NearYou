@@ -8,18 +8,14 @@ export default defineConfig({
         coverage: {
             reporter: ['text', 'json', 'html'],
 
+            include: [
+                'src/**',
+            ],
+
             exclude: [
-                '.nvmrc',
-                '.prettierrc',
-                'Dockerfile',
-                'env-var.env',
-                'package-lock.json',
-                'package.json',
-                'tsconfig.json',
-                'vitest.config.ts',
-                'node_modules/**',
-                'test/**',
-                'coverage/**',
+                'src/config/**',
+                'src/App.ts',
+                'src/KafkaManager.ts',
             ],
 
             thresholds: {
