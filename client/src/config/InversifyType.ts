@@ -2,8 +2,7 @@
 const TYPES = {
     Tracker: Symbol.for('Tracker'),
     Rent: Symbol.for('Rent'),
-    RentList: Symbol.for('RentList'),
-    Simulator: Symbol.for('Simulator')
+    RentList: Symbol.for('RentList')
 };
 
 export { TYPES }

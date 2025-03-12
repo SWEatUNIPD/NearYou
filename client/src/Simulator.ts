@@ -1,4 +1,4 @@
-import { inject, injectable } from 'inversify';
+import { inject } from 'inversify';
 import { SimulatorObserver } from './SimulatorObserver';
 import { Rent } from './Rent';
 import { Tracker } from './Tracker';
@@ -6,7 +6,6 @@ import { TYPES } from './config/InversifyType';
 import { v4 as uuidv4 } from 'uuid';
 
 // Definisce la classe Simulator come iniettabile tramite Inversify
-@injectable()
 export class Simulator implements SimulatorObserver {
     // Costruttore che inietta la lista di Rent
     constructor(
