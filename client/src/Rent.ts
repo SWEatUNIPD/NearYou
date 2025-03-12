@@ -7,7 +7,6 @@ import { TYPES } from './config/InversifyType';
 @injectable()
 // Classe che rappresenta un noleggio
 export class Rent extends RentSubject implements RentObserver {
-    
     constructor(
         private id: string,
         @inject(TYPES.Tracker)
