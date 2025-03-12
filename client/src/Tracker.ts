@@ -10,14 +10,11 @@ import { injectable } from 'inversify';
 // Classe che rappresenta un tracker che invia dati GPS a un broker Kafka
 export class Tracker extends TrackerSubject {
     private consumer!: Consumer;
-    private sendingIntervalMilliseconds: number;
 
     constructor(
         private id: string
     ) {
         super();
-        
-        this.sendingIntervalMilliseconds = Number(env.SENDING_INTERVAL_MILLISECONDS);
     }
 
     // Metodo per attivare il tracker
@@ -49,6 +46,7 @@ export class Tracker extends TrackerSubject {
         const producer: Producer = await KafkaManager.getInstance().initAndConnectProducer();
 
         let currIndex = 0;
+        const sendingIntervalMilliseconds = Number(env.SENDING_INTERVAL_MILLISECONDS);
         const intervalId = setInterval(async () => {
             if (currIndex == trackPoints.length) {
                 await KafkaManager.getInstance().disconnectProducer(producer);
@@ -72,6 +70,6 @@ export class Tracker extends TrackerSubject {
             await KafkaManager.getInstance().sendMessage(producer, 'gps-data', message);
 
             currIndex++;
-        }, this.sendingIntervalMilliseconds);
+        }, sendingIntervalMilliseconds);
     }
 }

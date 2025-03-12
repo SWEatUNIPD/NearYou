@@ -4,17 +4,6 @@ import { GeoPoint } from "./GeoPoint";
 
 // Classe che si occupa di recuperare i punti di una traccia geografica
 export class TrackFetcher {
-    private mapCenter: GeoPoint;
-    private mapRadiusKm: number;
-    private maxNumTrackPoints: number;
-
-    constructor() {
-        // Inizializza le proprietà della classe con i valori di configurazione
-        this.mapCenter = new GeoPoint(Number(env.MAP_CENTER_LAT), Number(env.MAP_CENTER_LON));
-        this.mapRadiusKm = Number(env.MAP_RADIUS_KM);
-        this.maxNumTrackPoints = Number(env.MAX_NUM_TRACK_POINTS);
-    }
-
     // Metodo che recupera i punti di una traccia geografica
     async fetchTrack(): Promise<GeoPoint[]> {
         const response = await this.request();
@@ -25,11 +14,12 @@ export class TrackFetcher {
         const trackPoints = polyline.decode(encodedPolyline);
 
         let sampledPoints;
-        if (this.maxNumTrackPoints < trackPoints.length) {
-            const step = Math.floor(trackPoints.length / this.maxNumTrackPoints);
+        const maxNumTrackPoints = Number(env.MAX_NUM_TRACK_POINTS);
+        if (maxNumTrackPoints < trackPoints.length) {
+            const step = Math.floor(trackPoints.length / maxNumTrackPoints);
             sampledPoints = trackPoints
                 .filter((_, index) => index % step == 0)
-                .slice(0, this.maxNumTrackPoints);
+                .slice(0, maxNumTrackPoints);
         } else {
             sampledPoints = trackPoints;
         }
@@ -43,9 +33,10 @@ export class TrackFetcher {
 
     // Metodo privato che effettua una richiesta per ottenere i dati della traccia
     private async request(): Promise<Response> {
-        const radiusGeoPoint = GeoPoint.radiusKmToGeoPoint(this.mapRadiusKm);
-        const startGeoPoint = this.mapCenter.generateRandomPoint(radiusGeoPoint);
-        const destGeoPoint = this.mapCenter.generateRandomPoint(radiusGeoPoint);
+        const radiusGeoPoint = GeoPoint.radiusKmToGeoPoint(Number(env.MAP_RADIUS_KM));
+        const mapCenter = new GeoPoint(Number(env.MAP_CENTER_LAT), Number(env.MAP_CENTER_LON));
+        const startGeoPoint = mapCenter.generateRandomPoint(radiusGeoPoint);
+        const destGeoPoint = mapCenter.generateRandomPoint(radiusGeoPoint);
         
         const osrmUrl = 'http://router.project-osrm.org/route/v1/cycling';
         const requestUrl = `${osrmUrl}/${startGeoPoint.getLongitude()},${startGeoPoint.getLatitude()};${destGeoPoint.getLongitude()},${destGeoPoint.getLatitude()}`;
