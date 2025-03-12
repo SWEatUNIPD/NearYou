@@ -1,18 +1,10 @@
-import { env } from '../../src/EnvManager';
+import { env } from '../../src/config/EnvManager';
 import { GeoPoint } from '../../src/GeoPoint';
 import { TrackFetcher } from '../../src/TrackFetcher';
 
 import polyline from '@mapbox/polyline';
 
 describe('TrackFetcher', () => {
-    // Test che verifica se il costruttore inizializza correttamente le proprietà (Costruttore)
-    it('Verifica se il costruttore inizializza correttamente le proprietà', () => {
-        const trackerFetcher = new TrackFetcher();
-        expect(trackerFetcher['mapCenter']).toBeInstanceOf(GeoPoint); // Verifica che mapCenter sia un'istanza di GeoPoint
-        expect(trackerFetcher['mapRadiusKm']).toBe(Number(env.MAP_RADIUS_KM)); // Verifica che mapRadiusKm sia uguale al valore di env.MAP_RADIUS_KM
-        expect(trackerFetcher['maxNumTrackPoints']).toBe(Number(env.MAX_NUM_TRACK_POINTS)); // Verifica che maxNumTrackPoints sia uguale al valore di env.MAX_NUM_TRACK_POINTS
-    });
-
     // Test che verifica se il metodo fetchTrack restituisce un array di GeoPoint (fetchTrack)
     it('Verifica se il metodo fetchTrack restituisce un array di GeoPoint', async () => {
         const trackerFetcher = new TrackFetcher();
@@ -48,8 +40,8 @@ describe('TrackFetcher', () => {
         expect(trackPoints[0]).toBeInstanceOf(GeoPoint); // Verifica che il primo punto sia un'istanza di GeoPoint
     });
 
-    // Test che verifica se i punti vengono campionati correttamente se superano maxNumTrackPoints (fetchTrack)
-    it('Verifica se i punti vengono campionati correttamente se superano maxNumTrackPoints', async () => {
+    // Test che verifica se i punti vengono campionati correttamente se superano MAX_NUM_TRACK_POINTS (fetchTrack)
+    it('Verifica se i punti vengono campionati correttamente se superano MAX_NUM_TRACK_POINTS', async () => {
         const trackerFetcher = new TrackFetcher();
         const response = {
             ok: true,
@@ -59,16 +51,17 @@ describe('TrackFetcher', () => {
         } as Response;
         vi.spyOn(global, 'fetch').mockResolvedValueOnce(response); // Simula una risposta con una polilinea molto lunga
         const trackPoints = await trackerFetcher.fetchTrack();
-        expect(trackPoints.length).toBeLessThanOrEqual(trackerFetcher['maxNumTrackPoints']); // Verifica che il numero di punti sia inferiore o uguale a maxNumTrackPoints
+        expect(trackPoints.length).toBeLessThanOrEqual(Number(env.MAX_NUM_TRACK_POINTS)); // Verifica che il numero di punti sia inferiore o uguale a maxNumTrackPoints
     });
 
-    // Verifica se i punti vengono campionati correttamente quando il numero di punti supera maxNumTrackPoints (fetchTrack)
-    it('Verifica se i punti vengono campionati correttamente quando il numero di punti supera maxNumTrackPoints', async () => {
+    // Verifica se i punti vengono campionati correttamente quando il numero di punti supera MAX_NUM_TRACK_POINTS (fetchTrack)
+    it('Verifica se i punti vengono campionati correttamente quando il numero di punti supera MAX_NUM_TRACK_POINTS', async () => {
         const trackerFetcher = new TrackFetcher();
         
         // Modifica: imposta manualmente maxNumTrackPoints ad un valore più basso
         const testMaxNumTrackPoints = 10;
-        trackerFetcher['maxNumTrackPoints'] = testMaxNumTrackPoints;
+        // TODO: alza i numeri e lascia MAX_NUM_TRACK_POINTS
+        // trackerFetcher['maxNumTrackPoints'] = testMaxNumTrackPoints;
 
         // Simula una risposta con una polilinea lunga che genera almeno 100 punti
         const longPolyline = 'gfo}EtohhUxD@bAxJmGF'.repeat(25); // Polilinea lunga

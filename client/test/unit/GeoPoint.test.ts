@@ -24,7 +24,7 @@ describe("Geopoint", () => {
         expect(geoPoint.getLatitude()).toBeCloseTo(0.9009, 4);
 
         // Verifica che la longitudine calcolata sia corretta
-        expect(geoPoint.getLongitude()).toBeCloseTo(0.9010, 4); // Adjusted expected value
+        expect(geoPoint.getLongitude()).toBeCloseTo(0.9010, 4);
     });
 
     // Testo il metodo radiusKmToGeoPoint (radiusKmToGeoPoint) con un raggio troppo grande (> 10000)

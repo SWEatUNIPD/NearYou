@@ -31,7 +31,6 @@ describe("Tracker", () => {
         mockConsumer = {} as Consumer;
 
         // Configura i mock
-        vi.spyOn(KafkaManager, 'getInstance').mockReturnValue(mockKafkaManager);
         vi.spyOn(mockKafkaManager, 'initAndConnectProducer').mockResolvedValue(mockProducer);
         vi.spyOn(mockKafkaManager, 'initAndConnectConsumer').mockResolvedValue(mockConsumer);
     });
