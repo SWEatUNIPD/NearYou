@@ -4,7 +4,8 @@ import { GeoPoint } from './GeoPoint';
 import { TrackerSubject } from './TrackerSubject';
 import { KafkaManager } from './KafkaManager';
 import { Consumer, EachMessagePayload, Producer } from 'kafkajs';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
+import { TYPES } from './config/InversifyType';
 
 @injectable()
 // Classe che rappresenta un tracker che invia dati GPS a un broker Kafka
@@ -12,7 +13,9 @@ export class Tracker extends TrackerSubject {
     private consumer!: Consumer;
 
     constructor(
-        private id: string
+        private id: string,
+        @inject(TYPES.KafkaManager)
+        private kafkaManager: KafkaManager
     ) {
         super();
     }
@@ -38,20 +41,20 @@ export class Tracker extends TrackerSubject {
             });
         };
 
-        this.consumer = await KafkaManager.getInstance().initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
+        this.consumer = await this.kafkaManager.initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
     }
 
     // Metodo privato per muovere il tracker lungo i punti della traccia
     private async move(trackPoints: GeoPoint[]): Promise<void> {
-        const producer: Producer = await KafkaManager.getInstance().initAndConnectProducer();
+        const producer: Producer = await this.kafkaManager.initAndConnectProducer();
 
         let currIndex = 0;
         const sendingIntervalMilliseconds = Number(env.SENDING_INTERVAL_MILLISECONDS);
         const intervalId = setInterval(async () => {
             if (currIndex == trackPoints.length) {
-                await KafkaManager.getInstance().disconnectProducer(producer);
+                await this.kafkaManager.disconnectProducer(producer);
                 if (this.consumer != null) {
-                    await KafkaManager.getInstance().disconnectConsumer(this.consumer);
+                    await this.kafkaManager.disconnectConsumer(this.consumer);
                 }
                 
                 clearInterval(intervalId);
@@ -67,7 +70,7 @@ export class Tracker extends TrackerSubject {
                 longitude
             });
 
-            await KafkaManager.getInstance().sendMessage(producer, 'gps-data', message);
+            await this.kafkaManager.sendMessage(producer, 'gps-data', message);
 
             currIndex++;
         }, sendingIntervalMilliseconds);

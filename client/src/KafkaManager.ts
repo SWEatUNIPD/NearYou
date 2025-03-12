@@ -1,27 +1,12 @@
-import { env } from './config/EnvManager';
-import { Consumer, ConsumerConfig, EachMessagePayload, Kafka, KafkaConfig, Message, Producer } from "kafkajs";
+import { injectable } from 'inversify';
+import { Consumer, ConsumerConfig, EachMessagePayload, Kafka, Message, Producer } from "kafkajs";
 
+@injectable()
 // Classe che gestisce la connessione e le operazioni con Kafka
 export class KafkaManager {
-    private static instance: KafkaManager;
-    private kafka: Kafka;
-
-    private constructor() {
-        const kafkaConfig: KafkaConfig = {
-            clientId: env.CLIENT_ID,
-            brokers: [process.env.BROKER ?? 'localhost:9094']
-        };
-
-        this.kafka = new Kafka(kafkaConfig);
-    }
-
-    // Metodo per ottenere l'istanza singleton di KafkaManager
-    static getInstance(): KafkaManager {
-        if (this.instance == null) {
-            this.instance = new KafkaManager();
-        }
-        return this.instance;
-    }
+    constructor(
+        private kafka: Kafka
+    ) {}
 
     // Metodo per inizializzare e connettere un produttore Kafka
     async initAndConnectProducer(): Promise<Producer> {

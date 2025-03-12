@@ -4,16 +4,31 @@ import { Simulator } from '../Simulator';
 import { Tracker } from '../Tracker';
 import { TYPES } from './InversifyType';
 import { v4 as uuidv4 } from 'uuid';
-import { env } from '../EnvManager';
+import { env } from './EnvManager';
+import { KafkaManager } from '../KafkaManager';
+import { Kafka, KafkaConfig } from 'kafkajs';
 
 // Crea un nuovo contenitore Inversify per la gestione delle dipendenze
 const container = new Container();
 
+container
+    .bind<KafkaManager>(TYPES.KafkaManager)
+    .toDynamicValue(() => {
+        const kafkaConfig: KafkaConfig = {
+            clientId: env.CLIENT_ID,
+            brokers: [process.env.BROKER ?? String(env.LOCAL_BROKER)]
+        };
+        const kafka: Kafka = new Kafka(kafkaConfig);
+        return new KafkaManager(kafka);
+    })
+    .inSingletonScope();
+
 // Configura il binding per Tracker
 container
     .bind<Tracker>(TYPES.Tracker)
-    .toDynamicValue(() => {
-        const tracker: Tracker = new Tracker(uuidv4());
+    .toDynamicValue((context: ResolutionContext) => {
+        const kafkaManager: KafkaManager = context.get<KafkaManager>(TYPES.KafkaManager);
+        const tracker: Tracker = new Tracker(uuidv4(), kafkaManager);
         return tracker;
     });
 
