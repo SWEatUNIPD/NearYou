@@ -2,70 +2,88 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 DROP TYPE IF EXISTS category_enum CASCADE;
 
-CREATE TYPE category_enum AS ENUM (
-    'food',
-    'clothes',
-    'other'
-);
-
 DROP TABLE IF EXISTS users cascade;
 DROP TABLE IF EXISTS bikes cascade;
 DROP TABLE IF EXISTS rents cascade;
 DROP TABLE IF EXISTS merchants cascade;
 DROP TABLE IF EXISTS points_of_interest cascade;
+DROP INDEX IF EXISTS idx_points_of_interest_location;
 DROP TABLE IF EXISTS advertisements cascade;
 DROP TABLE IF EXISTS positions cascade;
-DROP TABLE IF EXISTS user_categories CASCADE;
+DROP TABLE IF EXISTS user_interests CASCADE;
+DROP TABLE IF EXISTS poi_hours CASCADE;
 
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    name TEXT NOT NULL,
-    preferences VARCHAR(200)
+CREATE TABLE IF NOT EXISTS users
+(
+    id          SERIAL PRIMARY KEY,
+    name        TEXT NOT NULL,
+    preferences TEXT
 );
 
-CREATE TABLE IF NOT EXISTS user_categories (
-    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+CREATE TYPE category_enum AS ENUM ('food','clothes','other');
+
+CREATE TABLE IF NOT EXISTS user_interests
+(
+    user_id  INT           NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     category category_enum NOT NULL,
     PRIMARY KEY (user_id, category)
 );
 
-CREATE TABLE IF NOT EXISTS bikes(
+CREATE TABLE IF NOT EXISTS bikes
+(
     id SERIAL PRIMARY KEY
 );
 
-CREATE TABLE IF NOT EXISTS rents(
-    id SERIAL PRIMARY KEY,
-    bike_id INT NOT NULL REFERENCES bikes(id) ON DELETE CASCADE,
-    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+CREATE TABLE IF NOT EXISTS rents
+(
+    id        SERIAL PRIMARY KEY,
+    bike_id   INT  NOT NULL REFERENCES bikes (id) ON DELETE CASCADE,
+    user_id   INT  NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     is_closed BOOL NOT NULL DEFAULT FALSE
 );
 
-CREATE TABLE IF NOT EXISTS positions(
-    id SERIAL PRIMARY KEY,
-    rent_id INT NOT NULL REFERENCES rents(id) ON DELETE CASCADE,
-    latitude REAL NOT NULL,
-    longitude REAL NOT NULL
+CREATE TABLE IF NOT EXISTS positions
+(
+    time_stamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    rent_id    INT                      NOT NULL REFERENCES rents (id) ON DELETE CASCADE,
+    latitude   REAL                     NOT NULL,
+    longitude  REAL                     NOT NULL,
+    PRIMARY KEY (time_stamp, rent_id)
 );
 
-CREATE TABLE IF NOT EXISTS merchants(
-    vat CHARACTER VARYING(11) NOT NULL PRIMARY KEY,
-    name TEXT NOT NULL
+CREATE TABLE IF NOT EXISTS merchants
+(
+    vat  CHARACTER VARYING(11) NOT NULL PRIMARY KEY,
+    name TEXT                  NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS points_of_interest (
-    id SERIAL PRIMARY KEY,
-    merchant_vat CHARACTER VARYING(11) NOT NULL REFERENCES merchants(vat) ON DELETE CASCADE,
-    name TEXT NOT NULL,
-    start_at TIME NOT NULL,
-    end_at TIME NOT NULL,
-    latitude REAL NOT NULL,
-    longitude REAL NOT NULL,
-    category category_enum NOT NULL
+CREATE TABLE IF NOT EXISTS points_of_interest
+(
+    id           SERIAL PRIMARY KEY,
+    merchant_vat CHARACTER VARYING(11) NOT NULL REFERENCES merchants (vat) ON DELETE CASCADE,
+    name         TEXT                  NOT NULL,
+    latitude     REAL                  NOT NULL,
+    longitude    REAL                  NOT NULL,
+    category     category_enum         NOT NULL,
+    description  TEXT                  NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS advertisements (
-    rent_id INT NOT NULL REFERENCES rents(id) ON DELETE CASCADE,
-    poi_id  INT NOT NULL REFERENCES points_of_interest(id) ON DELETE CASCADE,
-    adv TEXT,
+CREATE INDEX IF NOT EXISTS idx_points_of_interest_location ON points_of_interest USING GIST (ST_SetSRID(ST_MakePoint(longitude, latitude), 4326));
+
+CREATE TABLE IF NOT EXISTS poi_hours
+(
+    poi_id      INT                 NOT NULL REFERENCES points_of_interest (id) ON DELETE CASCADE,
+    day_of_week INT                 NOT NULL CHECK (day_of_week <= 7 AND day_of_week >= 1),
+    open_at     TIME WITH TIME ZONE NOT NULL,
+    close_at    TIME WITH TIME ZONE NOT NULL,
+    CHECK (close_at < open_at),
+    PRIMARY KEY (poi_id, day_of_week)
+);
+
+CREATE TABLE IF NOT EXISTS advertisements
+(
+    rent_id INT NOT NULL REFERENCES rents (id) ON DELETE CASCADE,
+    poi_id  INT NOT NULL REFERENCES points_of_interest (id) ON DELETE CASCADE,
+    adv     TEXT,
     PRIMARY KEY (rent_id, poi_id)
 );
