@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from 'vitest';
 import { Rent } from '../../src/Rent';
 import { Tracker } from '../../src/Tracker';
 

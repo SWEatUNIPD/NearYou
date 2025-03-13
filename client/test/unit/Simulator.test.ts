@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Simulator } from '../../src/Simulator';
 import { Rent } from '../../src/Rent';
 

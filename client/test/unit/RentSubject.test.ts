@@ -1,4 +1,3 @@
-import { describe, it, expect, vi } from "vitest";
 import { RentSubject } from "../../src/RentSubject";
 import { SimulatorObserver } from "../../src/SimulatorObserver";
 
@@ -6,7 +5,8 @@ import { SimulatorObserver } from "../../src/SimulatorObserver";
 class ConcreteRentSubject extends RentSubject {}
 
 describe("RentSubject", () => {
-    it("should register the simulatorObserver correctly", () => {
+    // Registra simulatorObserver correttamente (register)
+    it("Registra simulatorObserver correttamente", () => {
         const subject = new ConcreteRentSubject();
         const mockObserver = {
             updateRentEnded: vi.fn(), // Mock del metodo updateRentEnded
@@ -18,7 +18,8 @@ describe("RentSubject", () => {
         expect(() => subject["notifyRentEnded"]("test-id")).not.toThrow();
     });
 
-    it("should throw an error if simulatorObserver is not registered", () => {
+    // Lancia un errore se simulatorObserver non è registrato (notifyRentEnded)
+    it("Lancia un errore se simulatorObserver non è registrato", () => {
         const subject = new ConcreteRentSubject();
 
         // Verifica che venga generato un errore se l'osservatore non è registrato
@@ -28,7 +29,8 @@ describe("RentSubject", () => {
         );
     });
 
-    it("should call updateRentEnded on the simulatorObserver when notifyRentEnded is called", () => {
+    // Chiama updateRentEnded su simulatorObserver quando notifyRentEnded è chiamato (notifyRentEnded)
+    it("Chiama updateRentEnded su simulatorObserver quando notifyRentEnded è chiamato", () => {
         const subject = new ConcreteRentSubject();
         const mockObserver = {
             updateRentEnded: vi.fn(), // Mock della funzione updateRentEnded

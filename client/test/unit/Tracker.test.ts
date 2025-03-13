@@ -1,4 +1,3 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Tracker } from '../../src/Tracker';
 import { TrackFetcher } from '../../src/TrackFetcher';
 import { KafkaManager } from '../../src/KafkaManager';
@@ -42,7 +41,7 @@ describe("Tracker", () => {
 
     // Test per il metodo activate (activate)
     it("activate: dovrebbe ottenere i punti della traccia e iniziare a muoversi", async () => {
-        const tracker = new Tracker('tracker-1');
+        const tracker = new Tracker('tracker-1', mockKafkaManager);
 
         // Configura il mock di TrackFetcher
         const mockTrackPoints = [
@@ -69,14 +68,14 @@ describe("Tracker", () => {
     
     // Test per listenToAdv per verificare la gestione dei messaggi
     it("listenToAdv: dovrebbe gestire correttamente i messaggi ricevuti", async () => {
-        const tracker = new Tracker('tracker-1');
-        
+        const tracker = new Tracker('tracker-1', mockKafkaManager);
+
         // Mock della console.log per verificare che venga chiamata
         const consoleSpy = vi.spyOn(console, 'log');
-        
+
         // Variabile per memorizzare la callback
         let savedCallback: ((payload: EachMessagePayload) => Promise<void>) | undefined;
-        
+
         // Sovrascrivi il metodo initAndConnectConsumer per catturare la callback
         vi.mocked(mockKafkaManager.initAndConnectConsumer).mockImplementation(
             async (topic, groupId, callback) => {
@@ -84,18 +83,18 @@ describe("Tracker", () => {
                 return mockConsumer;
             }
         );
-        
+
         // Chiamata privata al metodo listenToAdv
         await (tracker as any).listenToAdv();
-        
+
         // Verifica che initAndConnectConsumer sia stato chiamato con i parametri corretti
         expect(mockKafkaManager.initAndConnectConsumer).toHaveBeenCalledWith(
             'adv-data', 'trackers', expect.any(Function)
         );
-        
+
         // Verifica che la callback sia stata catturata
         expect(savedCallback).toBeDefined();
-        
+
         // Simula la ricezione di un messaggio con tutte le proprietà richieste
         const testPayload: EachMessagePayload = {
             topic: 'test-topic',
@@ -111,12 +110,12 @@ describe("Tracker", () => {
             heartbeat: async () => {},
             pause: () => () => {}
         };
-        
+
         // Chiamiamo la callback catturata con il payload di test
         if (savedCallback) {
             await savedCallback(testPayload);
         }
-        
+
         // Verifica che console.log sia stato chiamato con i dati corretti
         expect(consoleSpy).toHaveBeenCalledWith({
             topic: 'test-topic',
