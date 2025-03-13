@@ -31,7 +31,7 @@ export class Simulator implements SimulatorObserver {
         let randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
         setInterval(() => {
             if (randomInterval == 0) {
-                const rent: Rent = container.get(Rent);
+                const rent: Rent = container.get<Rent>(TYPES.Rent);
                 this.rentList.push(rent);
                 rent.register(this);
                 rent.activate();
