@@ -2,7 +2,6 @@ import { env } from '../../src/config/EnvManager';
 import { GeoPoint } from '../../src/GeoPoint';
 import { TrackFetcher } from '../../src/TrackFetcher';
 import polyline from '@mapbox/polyline';
-import { vi, describe, it, expect } from 'vitest';
 
 describe('TrackFetcher', () => {
     // Test che verifica se il metodo fetchTrack restituisce un array di GeoPoint

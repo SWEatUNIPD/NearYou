@@ -1,9 +1,8 @@
 import { inject } from 'inversify';
 import { SimulatorObserver } from './SimulatorObserver';
 import { Rent } from './Rent';
-import { Tracker } from './Tracker';
 import { TYPES } from './config/InversifyType';
-import { v4 as uuidv4 } from 'uuid';
+import { container } from './config/Inversify.config';
 
 // Definisce la classe Simulator come iniettabile tramite Inversify
 export class Simulator implements SimulatorObserver {
@@ -32,9 +31,7 @@ export class Simulator implements SimulatorObserver {
         let randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
         setInterval(() => {
             if (randomInterval == 0) {
-                // Crea un nuovo Tracker e Rent, poi lo aggiunge alla lista e lo attiva
-                const trk = new Tracker(uuidv4());
-                const rent = new Rent(uuidv4(), trk);
+                const rent: Rent = container.get(Rent);
                 this.rentList.push(rent);
                 rent.register(this);
                 rent.activate();
