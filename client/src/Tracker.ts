@@ -41,7 +41,11 @@ export class Tracker extends TrackerSubject {
             });
         };
 
-        this.consumer = await this.kafkaManager.initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
+        try {
+            this.consumer = await this.kafkaManager.initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
+        } catch (err) {
+            console.error(`Error caught trying to initialize and connect the consumer.\n${err}`);
+        }
     }
 
     // Metodo privato per muovere il tracker lungo i punti della traccia
