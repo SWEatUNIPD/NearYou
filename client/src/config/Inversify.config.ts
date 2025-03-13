@@ -9,7 +9,7 @@ import { KafkaManager } from '../KafkaManager';
 import { Kafka, KafkaConfig } from 'kafkajs';
 
 // Crea un nuovo contenitore Inversify per la gestione delle dipendenze
-const container = new Container();
+export const container = new Container();
 
 container
     .bind<KafkaManager>(TYPES.KafkaManager)
@@ -55,5 +55,3 @@ container
 
 // Configura il binding per Simulator
 container.bind(Simulator).toSelf().inSingletonScope();
-
-export { container }
