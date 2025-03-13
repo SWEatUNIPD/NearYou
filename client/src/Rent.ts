@@ -23,7 +23,11 @@ export class Rent extends RentSubject implements RentObserver {
 
     // Metodo per notificare la fine della traccia
     updateTrackEnded(): void {
-        this.notifyRentEnded(this.id);
+        try {
+            this.notifyRentEnded(this.id);
+        } catch (err) {
+            console.error(`Error caught trying to notify the simulator.\n${err}`);
+        }
     }
 
     // Metodo per ottenere l'ID del noleggio

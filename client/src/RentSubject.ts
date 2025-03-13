@@ -17,6 +17,10 @@ export abstract class RentSubject {
             );
         }
 
-        this.simulatorObserver.updateRentEnded(id);
+        try {
+            this.simulatorObserver.updateRentEnded(id);
+        } catch (err) {
+            console.error(`Error caught trying to update the simulator rents list.\n${err}`);
+        }
     }
 }

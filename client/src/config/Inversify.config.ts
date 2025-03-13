@@ -16,7 +16,7 @@ container
     .toDynamicValue(() => {
         const kafkaConfig: KafkaConfig = {
             clientId: env.CLIENT_ID,
-            brokers: [process.env.BROKER ?? String(env.LOCAL_BROKER)]
+            brokers: [env.BROKER ?? 'localhost:9094']
         };
         const kafka: Kafka = new Kafka(kafkaConfig);
         return new KafkaManager(kafka);
