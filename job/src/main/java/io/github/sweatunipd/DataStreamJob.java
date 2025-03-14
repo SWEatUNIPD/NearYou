@@ -4,6 +4,7 @@ import io.github.sweatunipd.entity.GPSData;
 import io.github.sweatunipd.entity.PointOfInterest;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
 import org.apache.flink.connector.jdbc.JdbcSink;
@@ -17,6 +18,7 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 
+import java.util.Objects;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -24,8 +26,12 @@ import java.util.concurrent.TimeUnit;
 public class DataStreamJob {
 
   public static void main(String[] args) throws Exception {
+    // Configurazione dell'environment di Flink
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-    env.enableCheckpointing(60000);
+//    env.setParallelism(3);
+//    env.enableCheckpointing(60000);
+
+    // Configurazione della queue sorgente di Kafka
     Properties props = new Properties();
     KafkaSource<GPSData> source =
         KafkaSource.<GPSData>builder()
@@ -37,17 +43,23 @@ public class DataStreamJob {
             .setValueOnlyDeserializer(new GPSDataDeserializationSchema())
             .build();
 
+    // DataStream in entrata di Kafka delle posizioni GPS
     DataStreamSource<GPSData> kafka =
-        env.fromSource(source, WatermarkStrategy.noWatermarks(), "GPS Data - Kafka Queue");
+        env.fromSource(source, WatermarkStrategy.noWatermarks(), "GPS Data");
 
+    // Scarico delle posizioni nel DB
     kafka
+        .filter(Objects::nonNull)
         .addSink(
             JdbcSink.sink(
-                "INSERT INTO positions (rent_id, latitude, longitude) VALUES (?, ?, ?)",
+                "INSERT INTO positions (time_stamp, rent_id, latitude, longitude) VALUES (?, ?::UUID, ?, ?)",
                 (statement, gpsData) -> {
-                  statement.setInt(1, gpsData.getRentId());
-                  statement.setFloat(2, gpsData.getLatitude());
-                  statement.setFloat(3, gpsData.getLongitude());
+                  if (gpsData != null) {
+                    statement.setTimestamp(1, gpsData.getTimestamp());
+                    statement.setString(2, gpsData.getRentId().toString());
+                    statement.setFloat(3, gpsData.getLatitude());
+                    statement.setFloat(4, gpsData.getLongitude());
+                  }
                 },
                 JdbcExecutionOptions.builder()
                     .withBatchSize(1000)
@@ -62,11 +74,13 @@ public class DataStreamJob {
                     .build()))
         .name("Sink GPS Data in Database");
 
-    DataStream<Tuple2<Integer, PointOfInterest>> interestedPOI =
+    // Recupero dei punti di interessi data la posizione di un utente
+    DataStream<Tuple2<UUID, PointOfInterest>> interestedPOI =
         AsyncDataStream.unorderedWait(
             kafka, new NearestPOIRequest(), 1000, TimeUnit.MILLISECONDS, 1000);
 
-    DataStream<Tuple2<Integer, String>> generatedAdvertisement =
+    // Generazione degli annunci
+    DataStream<Tuple3<UUID, Integer, String>> generatedAdvertisement =
         AsyncDataStream.unorderedWait(
             interestedPOI,
             new AdvertisementGenerationRequest(),
@@ -74,8 +88,9 @@ public class DataStreamJob {
             TimeUnit.MILLISECONDS,
             1000);
 
-    KafkaSink<Tuple2<Integer, String>> kafkaSink =
-        KafkaSink.<Tuple2<Integer, String>>builder()
+    // Invio dei dati sulla coda Kafka per la ricezione degli annunci
+    KafkaSink<Tuple3<UUID, Integer, String>> kafkaSink =
+        KafkaSink.<Tuple3<UUID, Integer, String>>builder()
             .setBootstrapServers("localhost:9094")
             .setRecordSerializer(
                 KafkaRecordSerializationSchema.builder()
@@ -87,6 +102,27 @@ public class DataStreamJob {
 
     generatedAdvertisement.sinkTo(kafkaSink);
 
+    // Storicizzazione degli annunci in database
+    generatedAdvertisement.addSink(
+        JdbcSink.sink(
+            "INSERT INTO advertisements VALUES (?::UUID, ?, ?)",
+            (preparedStatement, advertisement) -> {
+              preparedStatement.setString(1, advertisement.f0.toString());
+              preparedStatement.setInt(2, advertisement.f1);
+              preparedStatement.setString(3, advertisement.f2);
+            },
+            JdbcExecutionOptions.builder()
+                .withBatchSize(1000)
+                .withBatchIntervalMs(100)
+                .withMaxRetries(5)
+                .build(),
+            new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
+                .withUrl("jdbc:postgresql://localhost:5432/admin")
+                .withDriverName("org.postgresql.Driver")
+                .withUsername("admin")
+                .withPassword("adminadminadmin")
+                .build()));
+    // Esecuzione del JOB
     env.execute("Kafka to PostgreSQL");
   }
 }

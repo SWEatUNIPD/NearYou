@@ -2,18 +2,36 @@ package io.github.sweatunipd.entity;
 
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.sql.Timestamp;
+import java.util.UUID;
+
 public class GPSData {
-    private int rentId;
+    private Timestamp timestamp;
+    private UUID rentId;
     private float latitude;
     private float longitude;
 
-    public GPSData(@JsonProperty("latitude") float latitude, @JsonProperty("longitude") float longitude, @JsonProperty("trackerId") int rentId) {
+    public GPSData(@JsonProperty("rent_id") UUID rentId, @JsonProperty("latitude") float latitude, @JsonProperty("longitude") float longitude) {
+        this.timestamp = new Timestamp(System.currentTimeMillis());
+        this.rentId = rentId;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.rentId = rentId;
     }
 
-    public GPSData() {
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public UUID getRentId() {
+        return rentId;
+    }
+
+    public void setRentId(UUID rentId) {
+        this.rentId = rentId;
     }
 
     public float getLatitude() {
@@ -30,14 +48,6 @@ public class GPSData {
 
     public void setLongitude(float longitude) {
         this.longitude = longitude;
-    }
-
-    public int getRentId() {
-        return rentId;
-    }
-
-    public void setRentId(int rentId) {
-        this.rentId = rentId;
     }
 
     @Override
