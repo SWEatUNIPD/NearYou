@@ -13,11 +13,22 @@ public class GPSDataDeserializationSchema extends AbstractDeserializationSchema<
   private static final Logger LOG = LoggerFactory.getLogger(GPSDataDeserializationSchema.class);
   private transient ObjectMapper objectMapper;
 
+  /**
+   * Method that initializes the ObjectMapper in order to perform the deserialization
+   *
+   * @param context Contextual information that can be used during initialization.
+   */
   @Override
   public void open(InitializationContext context) {
     objectMapper = JsonMapper.builder().build();
   }
 
+  /**
+   * Method that deserialize the data in a GPSData pojo for the upcoming stream from the client
+   *
+   * @param bytes serialized message
+   * @return GPSData as a product of the deserialization of the message
+   */
   @Override
   public GPSData deserialize(byte[] bytes) {
     try {

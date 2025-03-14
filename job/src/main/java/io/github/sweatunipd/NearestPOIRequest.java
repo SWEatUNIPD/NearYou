@@ -20,6 +20,13 @@ public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<UUID, P
   private static final Logger LOG = LoggerFactory.getLogger(NearestPOIRequest.class);
   private transient Connection connection;
 
+  /**
+   * Initialization method called before the trigger of the async operation
+   *
+   * @param openContext The context containing information about the context in which the function
+   *     is opened.
+   * @throws SQLException exception that occurs if the connection to the DB fails
+   */
   @Override
   public void open(OpenContext openContext) throws SQLException {
     Properties props = new Properties();
@@ -28,6 +35,7 @@ public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<UUID, P
     connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/admin", props);
   }
 
+  /** Method that closes the async request */
   @Override
   public void close() {
     if (connection != null) {
@@ -39,6 +47,13 @@ public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<UUID, P
     }
   }
 
+  /**
+   * Method that triggers the async operation for each element of the stream
+   *
+   * @param gpsData position emitted by one of the users
+   * @param resultFuture Future of the result of the processing; tuple of two element that includes
+   *     the ID of the rent and the interested POI saved in his specific POJO
+   */
   @Override
   public void asyncInvoke(
       GPSData gpsData, ResultFuture<Tuple2<UUID, PointOfInterest>> resultFuture) {
@@ -46,14 +61,14 @@ public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<UUID, P
             () -> {
               String sql =
                   "SELECT * FROM points_of_interest AS p JOIN poi_hours ON (p.id = poi_hours.poi_id) "
-                          + "WHERE ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint(?,?),4326), 3857), "
-                          + "ST_Transform(ST_SetSRID(ST_MakePoint(p.latitude,p.longitude),4326), 3857), ?) AND "
-                          + "p.id NOT IN (SELECT poi_id FROM advertisements WHERE rent_id=?::uuid) AND "
-                          + "p.category IN (SELECT category FROM user_interests JOIN rents ON (user_interests.user_id = rents.user_id) WHERE rents.id=?::UUID) AND "
-                          + "? BETWEEN poi_hours.open_at AND poi_hours.close_at AND "
-                          + "EXTRACT(ISODOW FROM ?::TIMESTAMP) = poi_hours.day_of_week "
-                          + "ORDER BY ST_Distance(ST_SetSRID(ST_MakePoint(?,?),4326), "
-                          + "ST_SetSRID(ST_MakePoint(p.latitude,p.longitude),4326)) LIMIT 1";
+                      + "WHERE ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint(?,?),4326), 3857), "
+                      + "ST_Transform(ST_SetSRID(ST_MakePoint(p.latitude,p.longitude),4326), 3857), ?) AND "
+                      + "p.id NOT IN (SELECT poi_id FROM advertisements WHERE rent_id=?::uuid) AND "
+                      + "p.category IN (SELECT category FROM user_interests JOIN rents ON (user_interests.user_id = rents.user_id) WHERE rents.id=?::UUID) AND "
+                      + "? BETWEEN poi_hours.open_at AND poi_hours.close_at AND "
+                      + "EXTRACT(ISODOW FROM ?::TIMESTAMP) = poi_hours.day_of_week "
+                      + "ORDER BY ST_Distance(ST_SetSRID(ST_MakePoint(?,?),4326), "
+                      + "ST_SetSRID(ST_MakePoint(p.latitude,p.longitude),4326)) LIMIT 1";
               try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                 preparedStatement.setFloat(1, gpsData.getLongitude());
                 preparedStatement.setFloat(2, gpsData.getLatitude());

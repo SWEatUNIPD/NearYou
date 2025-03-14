@@ -26,12 +26,10 @@ import java.util.concurrent.TimeUnit;
 public class DataStreamJob {
 
   public static void main(String[] args) throws Exception {
-    // Configurazione dell'environment di Flink
+    // Execution Environment Configuration
     final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-//    env.setParallelism(3);
-//    env.enableCheckpointing(60000);
 
-    // Configurazione della queue sorgente di Kafka
+    // Kafka Source Configuration
     Properties props = new Properties();
     KafkaSource<GPSData> source =
         KafkaSource.<GPSData>builder()
@@ -43,11 +41,11 @@ public class DataStreamJob {
             .setValueOnlyDeserializer(new GPSDataDeserializationSchema())
             .build();
 
-    // DataStream in entrata di Kafka delle posizioni GPS
+    // Kafka Entering Queue Data stream
     DataStreamSource<GPSData> kafka =
         env.fromSource(source, WatermarkStrategy.noWatermarks(), "GPS Data");
 
-    // Scarico delle posizioni nel DB
+    // Sink of the transmitted positions in DB
     kafka
         .filter(Objects::nonNull)
         .addSink(
@@ -74,12 +72,12 @@ public class DataStreamJob {
                     .build()))
         .name("Sink GPS Data in Database");
 
-    // Recupero dei punti di interessi data la posizione di un utente
+    // Data Stream of the interested POI for every single position in range
     DataStream<Tuple2<UUID, PointOfInterest>> interestedPOI =
         AsyncDataStream.unorderedWait(
             kafka, new NearestPOIRequest(), 1000, TimeUnit.MILLISECONDS, 1000);
 
-    // Generazione degli annunci
+    // Data Stream of generated advertisements
     DataStream<Tuple3<UUID, Integer, String>> generatedAdvertisement =
         AsyncDataStream.unorderedWait(
             interestedPOI,
@@ -88,7 +86,7 @@ public class DataStreamJob {
             TimeUnit.MILLISECONDS,
             1000);
 
-    // Invio dei dati sulla coda Kafka per la ricezione degli annunci
+    // Configuration of the Kafka Sink
     KafkaSink<Tuple3<UUID, Integer, String>> kafkaSink =
         KafkaSink.<Tuple3<UUID, Integer, String>>builder()
             .setBootstrapServers("localhost:9094")
@@ -100,9 +98,10 @@ public class DataStreamJob {
             .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
             .build();
 
-    generatedAdvertisement.sinkTo(kafkaSink);
+    // Sink of the successfully generated advertisements to the users via Kafka exiting queue
+    generatedAdvertisement.filter(adv-> !adv.f2.isEmpty()).sinkTo(kafkaSink);
 
-    // Storicizzazione degli annunci in database
+    // Sink of the generated advertisement in DB
     generatedAdvertisement.addSink(
         JdbcSink.sink(
             "INSERT INTO advertisements VALUES (?::UUID, ?, ?)",
@@ -122,7 +121,8 @@ public class DataStreamJob {
                 .withUsername("admin")
                 .withPassword("adminadminadmin")
                 .build()));
-    // Esecuzione del JOB
+
+    // Flink Job Execution
     env.execute("Kafka to PostgreSQL");
   }
 }

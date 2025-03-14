@@ -29,33 +29,11 @@ public class AdvertisementGenerationRequest
   private transient Connection connection;
 
   /**
-   * Method that verifies if the user is interested about the nearest point of interest
-   *
-   * @param userInterests string containing all the user's interests
-   * @param poiOffer string containing what offers the point of interest
-   * @return true if the LLM says that the user is interested about the POI, false otherwise
-   */
-  public boolean isUserInterestedInPOI(String userInterests, String poiOffer) {
-    SystemMessage systemMessage =
-        new SystemMessage(
-            "Verifica che le offerte che propone il punto di interesse siano compatibili con gli interessi dell'utente finale che deve ricevere l'annuncio pubblicitario. Rispondi solamente con YES se interessato o NO se non interessato");
-    UserMessage userMessage =
-        new UserMessage(
-            "L'offerta del punto di interesse è la seguente: "
-                + poiOffer
-                + ".\nL'interesse espresso dal cliente è il seguente: "
-                + userInterests
-                + ".");
-    ChatResponse aiResponse = model.chat(systemMessage, userMessage);
-    return aiResponse.toString().contains("YES");
-  }
-
-  /**
    * Method that triggers the async operation for each element of the stream
    *
    * @param interestedPOI tuple containing the UUID that represents the rent's ID and the POJO
    *     representing the point of interest
-   * @param resultFuture results of the processing; tuple containing the UUID of the rent, the ID of
+   * @param resultFuture Future of result of the processing; tuple containing the UUID of the rent, the ID of
    *     the point of interest and the string containing the result of the LLM's generation
    */
   @Override
@@ -122,6 +100,9 @@ public class AdvertisementGenerationRequest
     connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/admin", props);
   }
 
+  /**
+   * Method that closes the async request
+   */
   @Override
   public void close() {
     try {
