@@ -24,9 +24,9 @@ export class Tracker extends TrackerSubject {
     async activate(): Promise<void> {
         // await this.listenToAdv();
 
-        let trackFetcher = new TrackFetcher();
+        const trackFetcher = new TrackFetcher();
         try {
-            let trackPoints = await trackFetcher.fetchTrack();
+            const trackPoints = await trackFetcher.fetchTrack();
             await this.move(trackPoints);
         } catch (err) {
             console.error(err);
@@ -69,8 +69,7 @@ export class Tracker extends TrackerSubject {
                     clearInterval(intervalId);
                     this.notifyTrackEnded();
                 }
-
-                console.log(`${currIndex} / ${trackPoints.length} : ${trackPoints[currIndex]}`);
+                
                 let trackerId: string = this.id;
                 let latitude: number = trackPoints[currIndex].getLatitude();
                 let longitude: number = trackPoints[currIndex].getLongitude();

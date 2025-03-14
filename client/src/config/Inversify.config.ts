@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { env } from './EnvManager';
 import { KafkaManager } from '../KafkaManager';
 import { Kafka, KafkaConfig } from 'kafkajs';
+import { TrackFetcher } from '../TrackFetcher';
 
 // Crea un nuovo contenitore Inversify per la gestione delle dipendenze
 export const container = new Container();
