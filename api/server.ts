@@ -40,7 +40,7 @@ app.get('/start-rent/:userId/:bikeId', async (req, res) => {
 app.get('/close-rent/:rentId', async (req, res) => {
     const rentId = req.params.rentId;
     try {
-        const rent = await sql`
+        await sql`
         UPDATE rents SET is_closed = true WHERE id = ${rentId}`;
         res.status(200).send("Rent closed successfully.");
         return;
