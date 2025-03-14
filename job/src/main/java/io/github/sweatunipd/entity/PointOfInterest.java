@@ -1,7 +1,5 @@
 package io.github.sweatunipd.entity;
 
-import java.sql.Time;
-
 public class PointOfInterest {
   private int id;
   private String merchantVAT;
