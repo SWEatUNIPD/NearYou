@@ -22,11 +22,15 @@ export class Tracker extends TrackerSubject {
 
     // Metodo per attivare il tracker
     async activate(): Promise<void> {
-        await this.listenToAdv();
+        // await this.listenToAdv();
 
         let trackFetcher = new TrackFetcher();
-        let trackPoints = await trackFetcher.fetchTrack();
-        await this.move(trackPoints);
+        try {
+            let trackPoints = await trackFetcher.fetchTrack();
+            await this.move(trackPoints);
+        } catch (err) {
+            console.error(err);
+        }
     }
 
     // Metodo privato per ascoltare i messaggi di advertising
@@ -66,6 +70,7 @@ export class Tracker extends TrackerSubject {
                     this.notifyTrackEnded();
                 }
 
+                console.log(`${currIndex} / ${trackPoints.length} : ${trackPoints[currIndex]}`);
                 let trackerId: string = this.id;
                 let latitude: number = trackPoints[currIndex].getLatitude();
                 let longitude: number = trackPoints[currIndex].getLongitude();

@@ -31,8 +31,8 @@ export class TrackFetcher {
                 }
             });
         } catch (err) {
-            console.error(`Error caught trying to fetch a track.\n${err}`);
-            return [];
+            console.error(`Error caught trying to fetch a track.`);
+            throw err;
         }
     }
 
