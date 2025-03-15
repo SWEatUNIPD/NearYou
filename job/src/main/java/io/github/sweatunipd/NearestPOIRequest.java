@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -29,10 +30,11 @@ public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<UUID, P
    */
   @Override
   public void open(OpenContext openContext) throws SQLException {
+    Map<String, String> config= getRuntimeContext().getGlobalJobParameters();
     Properties props = new Properties();
-    props.setProperty("user", "admin");
-    props.setProperty("password", "adminadminadmin");
-    connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/admin", props);
+    props.setProperty("user", config.getOrDefault("postgres.username", "admin"));
+    props.setProperty("password", config.getOrDefault("postgres.password", "adminadminadmin"));
+    connection = DriverManager.getConnection(config.getOrDefault("postgres.jdbc.connection.url", "jdbc:postgresql://localhost:5432/admin"), props);
   }
 
   /** Method that closes the async request */

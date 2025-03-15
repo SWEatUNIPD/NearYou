@@ -5,7 +5,6 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
-import dev.langchain4j.model.openai.OpenAiChatModelName;
 import io.github.sweatunipd.entity.PointOfInterest;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -17,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -29,12 +29,51 @@ public class AdvertisementGenerationRequest
   private transient Connection connection;
 
   /**
+   * Initialization method called before the trigger of the async operation
+   *
+   * @param openContext The context containing information about the context in which the function¯
+   *     is opened.
+   * @throws SQLException exception that is thrown when the system can't establish a connection with
+   *     the DB
+   */
+  @Override
+  public void open(OpenContext openContext) throws SQLException {
+    Map<String, String> config = getRuntimeContext().getGlobalJobParameters();
+    model =
+        OpenAiChatModel.builder()
+            .apiKey(config.getOrDefault("langchain.openai.api.key", "demo"))
+            .modelName(config.getOrDefault("langchain.openai.model.name", "gpt-4o-mini"))
+            .build();
+    Properties props = new Properties();
+    props.setProperty("user", config.getOrDefault("postgres.username", "admin"));
+    props.setProperty("password", config.getOrDefault("postgres.password", "adminadminadmin"));
+    connection =
+        DriverManager.getConnection(
+            config.getOrDefault(
+                "postgres.jdbc.connection.url", "jdbc:postgresql://localhost:5432/admin"),
+            props);
+  }
+
+  /** Method that closes the async request */
+  @Override
+  public void close() {
+    try {
+      if (connection != null) {
+        connection.close();
+      }
+    } catch (SQLException e) {
+      LOG.error(e.getMessage(), e);
+    }
+  }
+
+  /**
    * Method that triggers the async operation for each element of the stream
    *
    * @param interestedPOI tuple containing the UUID that represents the rent's ID and the POJO
    *     representing the point of interest
-   * @param resultFuture Future of result of the processing; tuple containing the UUID of the rent, the ID of
-   *     the point of interest and the string containing the result of the LLM's generation
+   * @param resultFuture Future of result of the processing; tuple containing the UUID of the rent,
+   *     the ID of the point of interest and the string containing the result of the LLM's
+   *     generation
    */
   @Override
   public void asyncInvoke(
@@ -77,40 +116,5 @@ public class AdvertisementGenerationRequest
                 resultFuture.complete(Collections.emptyList());
               }
             });
-  }
-
-  /**
-   * Initialization method called before the trigger of the async operation
-   *
-   * @param openContext The context containing information about the context in which the function
-   *     is opened.
-   * @throws SQLException exception that is thrown when the system can't establish a connection with
-   *     the DB
-   */
-  @Override
-  public void open(OpenContext openContext) throws SQLException {
-    model =
-        OpenAiChatModel.builder()
-            .apiKey("demo")
-            .modelName(OpenAiChatModelName.GPT_4_O_MINI)
-            .build();
-    Properties props = new Properties();
-    props.setProperty("user", "admin");
-    props.setProperty("password", "adminadminadmin");
-    connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/admin", props);
-  }
-
-  /**
-   * Method that closes the async request
-   */
-  @Override
-  public void close() {
-    try {
-      if (connection != null) {
-        connection.close();
-      }
-    } catch (SQLException e) {
-      LOG.error(e.getMessage(), e);
-    }
   }
 }

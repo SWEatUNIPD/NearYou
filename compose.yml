@@ -30,6 +30,7 @@ services:
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=adminadminadmin
+      - POSTGRES_DB=admin
     volumes:
       - ./create.sql:/docker-entrypoint-initdb.d/create.sql
 
@@ -40,3 +41,42 @@ services:
       - 3000:3000
     volumes:
       - ./data/grafana/grafana.db:/var/lib/grafana/grafana.db
+
+  jobmanager:
+    image: flink:1.20.1-scala_2.12-java17
+    depends_on:
+      - kafka
+      - postgis
+    ports:
+      - 8081:8081
+    command: standalone-job --job-classname io.github.sweatunipd.DataStreamJob
+    volumes:
+      - ./job/target/NearYou-1.0.jar:/opt/flink/usrlib/NearYou-1.0.jar
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        kafka.bootstrap.server: kafka:9092
+        kafka.input.topic: gps-data
+        kafka.output.topic: adv-data
+        postgres.jdbc.connection.url: jdbc:postgresql://postgis:5432/admin
+        postgres.username: admin
+        postgres.password: adminadminadmin
+        langchain.openai.model.name: gpt-4o-mini
+        langchain.openai.api.key: demo
+        jobmanager.rpc.address: jobmanager
+        parallelism.default: 2 
+
+  taskmanager:
+    image: flink:1.20.1-scala_2.12-java17
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    scale: 1
+    volumes:
+      - ./job/target/NearYou-1.0.jar:/opt/flink/usrlib/NearYou-1.0.jar
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 2
