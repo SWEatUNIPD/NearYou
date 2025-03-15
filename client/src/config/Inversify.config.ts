@@ -11,7 +11,7 @@ export const container = new Container();
 
 container
     .bind<KafkaManager>(TYPES.KafkaManager)
-    .toDynamicValue(() => {
+    .toDynamicValue((): KafkaManager => {
         const kafkaConfig: KafkaConfig = {
             clientId: env.CLIENT_ID,
             brokers: [env.BROKER ?? 'localhost:9094']

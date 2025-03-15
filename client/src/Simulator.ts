@@ -6,10 +6,16 @@ import { env } from './config/EnvManager';
 
 // Definisce la classe Simulator come iniettabile tramite Inversify
 export class Simulator implements SimulatorObserver {
+    private rentIdMap: Map<string, string> = new Map();
+
     constructor(
         @inject(TYPES.TrackerMap)
         private trackerMap: Map<string, Tracker>
-    ) { }
+    ) {
+        this.trackerMap.forEach(tracker => {
+            tracker.register(this);
+        });
+    }
 
     private async startRent(): Promise<void> {
         let tracker: Tracker | null = null;
@@ -25,9 +31,16 @@ export class Simulator implements SimulatorObserver {
             );
         }
 
-        // TODO: API per chiedere rent id (butta via)
+        const requestUrl = `http://localhost:9000/start-rent/${tracker.getId()},${tracker.getId()}`;
+        const response = await fetch(requestUrl);
+        if (!response.ok) {
+            throw new Error(
+                `Rent ID request error: ${response.status} - ${await response.text()}`
+            );
+        }
+        this.rentIdMap.set(tracker.getId(), (await response.json()).id);
+
         tracker.setIsAvailable(false);
-        tracker.register(this);
         tracker.activate();
     }
 
@@ -52,7 +65,11 @@ export class Simulator implements SimulatorObserver {
         let randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
         setInterval(async () => {
             if (randomInterval == 0) {
-                await this.startRent();
+                try {
+                    await this.startRent();
+                } catch (err) {
+                    console.error(`Error caught trying to start a new rent in runtime.\n${err}`);
+                }
                 randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
             }
 
@@ -60,15 +77,20 @@ export class Simulator implements SimulatorObserver {
         }, 1000);
     }
 
-    trackEndedUpdate(id: string): void {
+    async trackEndedUpdate(id: string): Promise<void> {
         try {
-            this.trackerMap.get(id)?.setIsAvailable(true);
+            const requestUrl = `http://localhost:9000/close-rent/${this.rentIdMap.get(id)}`;
+            const response = await fetch(requestUrl);
+            if (!response.ok) {
+                throw new Error(
+                    `Close rent request error: ${response.status} - ${await response.text()}`
+                );
+            }
+            this.rentIdMap.delete(id);
 
-            // TODO: chiamata api (qua o in tracker?)
+            this.trackerMap.get(id)?.setIsAvailable(true);
         } catch (err) {
-            throw new Error(
-                `Tracker with id '${id}' is ended but not found in list`
-            );
+            throw err;
         }
     }
 }

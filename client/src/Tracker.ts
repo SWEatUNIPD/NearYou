@@ -68,7 +68,7 @@ export class Tracker extends TrackerSubject {
                     }
 
                     clearInterval(intervalId);
-                    this.notifyTrackEnded(this.id);
+                    await this.notifyTrackEnded(this.id);
                 }
 
                 console.log(`${currIndex} / ${trackPoints.length} : ${trackPoints[currIndex]}`);
@@ -88,6 +88,10 @@ export class Tracker extends TrackerSubject {
         } catch (err) {
             console.error(`Error caught trying to move the tracker along the path.\n${err}`);
         }
+    }
+
+    getId(): string {
+        return this.id;
     }
 
     getIsAvailable(): boolean {

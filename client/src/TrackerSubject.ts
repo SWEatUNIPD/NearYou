@@ -10,13 +10,17 @@ export abstract class TrackerSubject {
     }
 
     // Metodo protetto per notificare la fine di una traccia
-    protected notifyTrackEnded(id: string): void {
+    protected async notifyTrackEnded(id: string): Promise<void> {
         if (this.simulatorObserver == null) {
             throw new Error(
                 `Track ended notify error: simulatorObserver not initialized`
             );
         }
 
-        this.simulatorObserver.trackEndedUpdate(id);
+        try {
+            await this.simulatorObserver.trackEndedUpdate(id);
+        } catch (err) {
+            console.error(`Error caught trying to update the tracker map.\n${err}`);
+        }
     }
 }
