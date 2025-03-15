@@ -17,6 +17,20 @@ export class Simulator implements SimulatorObserver {
         });
     }
 
+    // Metodo per avviare la simulazione
+    async startSimulation(): Promise<void> {
+        for (let i = 0; i < Number(env.INIT_RENT_COUNT); i++) {
+            try {
+                await this.startRent();
+            } catch (err) {
+                console.error(`Error caught trying to start a new rent.\n${err}`);
+                return;
+            }
+        }
+
+        this.startRentsInRuntime();
+    }
+
     private async startRent(): Promise<void> {
         let tracker: Tracker | null = null;
         for (const trk of this.trackerMap.values()) {
@@ -42,20 +56,6 @@ export class Simulator implements SimulatorObserver {
 
         tracker.setIsAvailable(false);
         tracker.activate();
-    }
-
-    // Metodo per avviare la simulazione
-    async startSimulation(): Promise<void> {
-        for (let i = 0; i < Number(env.INIT_RENT_COUNT); i++) {
-            try {
-                await this.startRent();
-            } catch (err) {
-                console.error(`Error caught trying to start a new rent.\n${err}`);
-                return;
-            }
-        }
-
-        this.startRentsInRuntime();
     }
 
     // Metodo privato per avviare i Rent a runtime con intervalli casuali
