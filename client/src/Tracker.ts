@@ -10,6 +10,7 @@ import { TYPES } from './config/InversifyType';
 @injectable()
 // Classe che rappresenta un tracker che invia dati GPS a un broker Kafka
 export class Tracker extends TrackerSubject {
+    private isAvailable: boolean = true;
     private consumer!: Consumer;
 
     constructor(
@@ -22,7 +23,7 @@ export class Tracker extends TrackerSubject {
 
     // Metodo per attivare il tracker
     async activate(): Promise<void> {
-        // await this.listenToAdv();
+        await this.listenToAdv();
 
         let trackFetcher = new TrackFetcher();
         try {
@@ -67,7 +68,7 @@ export class Tracker extends TrackerSubject {
                     }
 
                     clearInterval(intervalId);
-                    this.notifyTrackEnded();
+                    this.notifyTrackEnded(this.id);
                 }
 
                 console.log(`${currIndex} / ${trackPoints.length} : ${trackPoints[currIndex]}`);
@@ -87,5 +88,13 @@ export class Tracker extends TrackerSubject {
         } catch (err) {
             console.error(`Error caught trying to move the tracker along the path.\n${err}`);
         }
+    }
+
+    getIsAvailable(): boolean {
+        return this.isAvailable;
+    }
+
+    setIsAvailable(value: boolean): void {
+        this.isAvailable = value;
     }
 }
