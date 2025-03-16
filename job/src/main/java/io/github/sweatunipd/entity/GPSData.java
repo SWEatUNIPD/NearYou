@@ -3,16 +3,15 @@ package io.github.sweatunipd.entity;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.sql.Timestamp;
-import java.util.UUID;
 
 public class GPSData {
   private Timestamp timestamp;
-  private UUID rentId;
+  private int rentId;
   private float latitude;
   private float longitude;
 
   public GPSData(
-      @JsonProperty("rent_id") UUID rentId,
+      @JsonProperty("rent_id") int rentId,
       @JsonProperty("latitude") float latitude,
       @JsonProperty("longitude") float longitude) {
     this.timestamp = new Timestamp(System.currentTimeMillis());
@@ -29,11 +28,11 @@ public class GPSData {
     this.timestamp = timestamp;
   }
 
-  public UUID getRentId() {
+  public int getRentId() {
     return rentId;
   }
 
-  public void setRentId(UUID rentId) {
+  public void setRentId(int rentId) {
     this.rentId = rentId;
   }
 

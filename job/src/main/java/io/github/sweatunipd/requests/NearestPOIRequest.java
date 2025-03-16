@@ -15,7 +15,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
-public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<GPSData, PointOfInterest>> {
+public class NearestPOIRequest
+    extends RichAsyncFunction<GPSData, Tuple2<GPSData, PointOfInterest>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(NearestPOIRequest.class);
   private transient Connection connection;
@@ -44,7 +45,7 @@ public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<GPSData
     }
   }
 
-  /** Method that closes the async request */
+  /** Method that closes the async request * */
   @Override
   public void close() {
     if (connection != null) {
@@ -100,6 +101,7 @@ public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<GPSData
 
   /**
    * ResultSet of the nearest POI to the user
+   *
    * @param gpsData gps info about the user
    * @return POI in a resultSet
    * @throws SQLException thrown if creation and execution of prepared statement fails
@@ -109,8 +111,8 @@ public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<GPSData
         "SELECT * FROM points_of_interest AS p JOIN poi_hours ON (p.id = poi_hours.poi_id) "
             + "WHERE ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint(?,?),4326), 3857), "
             + "ST_Transform(ST_SetSRID(ST_MakePoint(p.latitude,p.longitude),4326), 3857), ?) AND "
-            + "p.id NOT IN (SELECT poi_id FROM advertisements WHERE rent_id=?::uuid) AND "
-            + "p.category IN (SELECT category FROM user_interests JOIN rents ON (user_interests.user_id = rents.user_id) WHERE rents.id=?::UUID) AND "
+            + "p.id NOT IN (SELECT poi_id FROM advertisements WHERE rent_id_position=?) AND "
+            + "p.category IN (SELECT category FROM user_interests JOIN rents ON (user_interests.user_id = rents.user_id) WHERE rents.id=?) AND "
             + "? BETWEEN poi_hours.open_at AND poi_hours.close_at AND "
             + "EXTRACT(ISODOW FROM ?::TIMESTAMP) = poi_hours.day_of_week "
             + "ORDER BY ST_Distance(ST_SetSRID(ST_MakePoint(?,?),4326), "
@@ -119,20 +121,12 @@ public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<GPSData
     preparedStatement.setFloat(1, gpsData.getLongitude());
     preparedStatement.setFloat(2, gpsData.getLatitude());
     preparedStatement.setInt(3, 100); // FIXME: range
-    preparedStatement.setString(4, gpsData.getRentId().toString());
-    preparedStatement.setString(5, gpsData.getRentId().toString());
+    preparedStatement.setInt(4, gpsData.getRentId());
+    preparedStatement.setInt(5, gpsData.getRentId());
     preparedStatement.setTimestamp(6, gpsData.getTimestamp());
     preparedStatement.setTimestamp(7, gpsData.getTimestamp());
     preparedStatement.setFloat(8, gpsData.getLongitude());
     preparedStatement.setFloat(9, gpsData.getLatitude());
     return preparedStatement.executeQuery();
-  }
-
-  /**
-   * Done only for test purpose
-   * @param connection connection to the database
-   */
-  public void setConnection(Connection connection) {
-    this.connection = connection;
   }
 }

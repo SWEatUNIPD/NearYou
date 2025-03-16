@@ -19,7 +19,6 @@ import java.sql.*;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class AdvertisementGenerationRequest
@@ -73,9 +72,9 @@ public class AdvertisementGenerationRequest
   /**
    * Method that triggers the async operation for each element of the stream
    *
-   * @param interestedPOI tuple containing the UUID that represents the rent's ID and the POJO
+   * @param interestedPOI tuple containing the POJO representing the GPS data and the POJO
    *     representing the point of interest
-   * @param resultFuture Future of result of the processing; tuple containing the UUID of the rent,
+   * @param resultFuture Future of result of the processing; tuple containing the POJO of the GPS Data,
    *     the ID of the point of interest and the string containing the result of the LLM's
    *     generation
    */
@@ -86,7 +85,7 @@ public class AdvertisementGenerationRequest
     CompletableFuture.supplyAsync(
             () -> {
               try {
-                ResultSet resultSet = getUserPreferences(interestedPOI.f0.toString());
+                ResultSet resultSet = getUserPreferences(interestedPOI.f0.getRentId());
                 if (resultSet.next()) {
                   return new Tuple3<>(
                       interestedPOI.f0,
@@ -116,11 +115,11 @@ public class AdvertisementGenerationRequest
    * @return the result of the query
    * @throws SQLException exception thrown by the creation and execution of the prepared stament
    */
-  public ResultSet getUserPreferences(String rentId) throws SQLException {
+  public ResultSet getUserPreferences(int rentId) throws SQLException {
     PreparedStatement statement =
         connection.prepareStatement(
-            "SELECT users.preferences FROM users JOIN rents ON rents.user_id = users.id WHERE rents.id=?::UUID");
-    statement.setString(1, rentId);
+            "SELECT users.preferences FROM users JOIN rents ON rents.user_id = users.id WHERE rents.id=?");
+    statement.setInt(1, rentId);
     return statement.executeQuery();
   }
 

@@ -84,11 +84,11 @@ public class DataStreamJob {
         .filter(Objects::nonNull)
         .addSink(
             JdbcSink.sink(
-                "INSERT INTO positions (time_stamp, rent_id, latitude, longitude) VALUES (?, ?::UUID, ?, ?)",
+                "INSERT INTO positions (time_stamp, rent_id, latitude, longitude) VALUES (?, ?, ?, ?)",
                 (statement, gpsData) -> {
                   if (gpsData != null) {
                     statement.setTimestamp(1, gpsData.getTimestamp());
-                    statement.setString(2, gpsData.getRentId().toString());
+                    statement.setInt(2, gpsData.getRentId());
                     statement.setFloat(3, gpsData.getLatitude());
                     statement.setFloat(4, gpsData.getLongitude());
                   }
@@ -133,10 +133,10 @@ public class DataStreamJob {
     // Sink of the generated advertisement in DB
     generatedAdvertisement.addSink(
         JdbcSink.sink(
-            "INSERT INTO advertisements(time_stamp_position, rent_id_position, poi_id, adv) VALUES (?, ?::UUID, ?, ?)",
+            "INSERT INTO advertisements(time_stamp_position, rent_id_position, poi_id, adv) VALUES (?, ?, ?, ?)",
             (preparedStatement, advertisement) -> {
               preparedStatement.setTimestamp(1, advertisement.f0.getTimestamp());
-              preparedStatement.setString(2, advertisement.f0.getRentId().toString());
+              preparedStatement.setInt(2, advertisement.f0.getRentId());
               preparedStatement.setInt(3, advertisement.f1);
               preparedStatement.setString(4, advertisement.f2);
             },
