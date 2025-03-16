@@ -1,5 +1,3 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
 DROP TYPE IF EXISTS category_enum CASCADE;
 
 DROP TABLE IF EXISTS users cascade;
@@ -24,7 +22,7 @@ CREATE TYPE category_enum AS ENUM ('restaurant','fast_food','bar','pub','cafe','
 
 CREATE TABLE user_interests
 (
-    user_id  INT           NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    user_id  SERIAL           NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     category category_enum NOT NULL,
     PRIMARY KEY (user_id, category)
 );
@@ -36,18 +34,18 @@ CREATE TABLE bikes
 
 CREATE TABLE rents
 (
-    id        UUID PRIMARY KEY DEFAULT uuid_generate_v1(),
-    bike_id   INT  NOT NULL REFERENCES bikes (id) ON DELETE CASCADE,
-    user_id   INT  NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    is_closed BOOL NOT NULL    DEFAULT FALSE
+    id        SERIAL NOT NULL PRIMARY KEY,
+    bike_id   SERIAL    NOT NULL REFERENCES bikes (id) ON DELETE CASCADE,
+    user_id   SERIAL    NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    is_closed BOOL   NOT NULL DEFAULT FALSE
 );
 
 CREATE TABLE positions
 (
     time_stamp TIMESTAMP WITH TIME ZONE,
-    rent_id    UUID NOT NULL REFERENCES rents (id) ON DELETE CASCADE,
-    latitude   REAL NOT NULL,
-    longitude  REAL NOT NULL,
+    rent_id    SERIAL NOT NULL REFERENCES rents (id) ON DELETE CASCADE,
+    latitude   REAL   NOT NULL,
+    longitude  REAL   NOT NULL,
     PRIMARY KEY (time_stamp, rent_id)
 );
 
@@ -72,7 +70,7 @@ CREATE INDEX idx_points_of_interest_location ON points_of_interest USING GIST (S
 
 CREATE TABLE poi_hours
 (
-    poi_id      INT                 NOT NULL REFERENCES points_of_interest (id) ON DELETE CASCADE,
+    poi_id      SERIAL                 NOT NULL REFERENCES points_of_interest (id) ON DELETE CASCADE,
     day_of_week INT                 NOT NULL CHECK (day_of_week <= 7 AND day_of_week >= 1),
     open_at     TIME WITH TIME ZONE NOT NULL,
     close_at    TIME WITH TIME ZONE NOT NULL,
@@ -83,9 +81,9 @@ CREATE TABLE poi_hours
 CREATE TABLE advertisements
 (
     id                  SERIAL NOT NULL PRIMARY KEY,
-    time_stamp_position TIMESTAMP WITH TIME ZONE,
-    rent_id_position    UUID   NOT NULL,
-    poi_id              INT    NOT NULL REFERENCES points_of_interest (id) ON DELETE CASCADE,
+    time_stamp_position TIMESTAMP WITH TIME ZONE NOT NULL,
+    rent_id_position    SERIAL NOT NULL,
+    poi_id              SERIAL    NOT NULL REFERENCES points_of_interest (id) ON DELETE CASCADE,
     adv                 TEXT,
     FOREIGN KEY (time_stamp_position, rent_id_position) REFERENCES positions (time_stamp, rent_id),
     UNIQUE (time_stamp_position, rent_id_position)

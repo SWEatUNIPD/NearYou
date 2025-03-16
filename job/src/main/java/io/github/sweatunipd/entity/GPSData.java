@@ -6,56 +6,62 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 public class GPSData {
-    private Timestamp timestamp;
-    private UUID rentId;
-    private float latitude;
-    private float longitude;
+  private Timestamp timestamp;
+  private UUID rentId;
+  private float latitude;
+  private float longitude;
 
-    public GPSData(@JsonProperty("rent_id") UUID rentId, @JsonProperty("latitude") float latitude, @JsonProperty("longitude") float longitude, Timestamp timestamp) {
-        this.timestamp = new Timestamp(System.currentTimeMillis());
-        this.rentId = rentId;
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
+  public GPSData(
+      @JsonProperty("rent_id") UUID rentId,
+      @JsonProperty("latitude") float latitude,
+      @JsonProperty("longitude") float longitude) {
+    this.timestamp = new Timestamp(System.currentTimeMillis());
+    this.rentId = rentId;
+    this.latitude = latitude;
+    this.longitude = longitude;
+  }
 
-    public Timestamp getTimestamp() {
-        return timestamp;
-    }
+  public Timestamp getTimestamp() {
+    return timestamp;
+  }
 
-    public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
-    }
+  public void setTimestamp(Timestamp timestamp) {
+    this.timestamp = timestamp;
+  }
 
-    public UUID getRentId() {
-        return rentId;
-    }
+  public UUID getRentId() {
+    return rentId;
+  }
 
-    public void setRentId(UUID rentId) {
-        this.rentId = rentId;
-    }
+  public void setRentId(UUID rentId) {
+    this.rentId = rentId;
+  }
 
-    public float getLatitude() {
-        return latitude;
-    }
+  public float getLatitude() {
+    return latitude;
+  }
 
-    public void setLatitude(float latitude) {
-        this.latitude = latitude;
-    }
+  public void setLatitude(float latitude) {
+    this.latitude = latitude;
+  }
 
-    public float getLongitude() {
-        return longitude;
-    }
+  public float getLongitude() {
+    return longitude;
+  }
 
-    public void setLongitude(float longitude) {
-        this.longitude = longitude;
-    }
+  public void setLongitude(float longitude) {
+    this.longitude = longitude;
+  }
 
-    @Override
-    public String toString() {
-        return "GPSData{" +
-                "latitude=" + latitude +
-                ", rentId=" + rentId +
-                ", longitude=" + longitude +
-                '}';
-    }
+  @Override
+  public String toString() {
+    return "GPSData{"
+        + "latitude="
+        + latitude
+        + ", rentId="
+        + rentId
+        + ", longitude="
+        + longitude
+        + '}';
+  }
 }
