@@ -1,42 +1,75 @@
 import { inject } from 'inversify';
 import { SimulatorObserver } from './SimulatorObserver';
-import { Rent } from './Rent';
 import { TYPES } from './config/InversifyType';
-import { container } from './config/Inversify.config';
+import { Tracker } from './Tracker';
+import { env } from './config/EnvManager';
 
 // Definisce la classe Simulator come iniettabile tramite Inversify
 export class Simulator implements SimulatorObserver {
-    // Costruttore che inietta la lista di Rent
+    private rentIdMap: Map<string, string> = new Map();
+
     constructor(
-        @inject(TYPES.RentList)
-        private rentList: Rent[]
-    ) {}
+        @inject(TYPES.TrackerMap)
+        private trackerMap: Map<string, Tracker>
+    ) {
+        this.trackerMap.forEach(tracker => {
+            tracker.register(this);
+        });
+    }
 
     // Metodo per avviare la simulazione
-    startSimulation(): void {
-        // Registra e attiva ogni Rent nella lista
-        this.rentList.forEach(rent => {
-            rent.register(this);
-            rent.activate();
-        });
+    async startSimulation(): Promise<void> {
+        for (let i = 0; i < Number(env.INIT_RENT_COUNT); i++) {
+            try {
+                await this.startRent();
+            } catch (err) {
+                console.error(`Error caught trying to start a new rent.\n${err}`);
+                return;
+            }
+        }
 
-        // Avvia la creazione di nuovi Rent a runtime
         this.startRentsInRuntime();
+    }
+
+    private async startRent(): Promise<void> {
+        let tracker: Tracker | null = null;
+        for (const trk of this.trackerMap.values()) {
+            if (trk.getIsAvailable()) {
+                tracker = trk;
+                break;
+            }
+        }
+        if (tracker == null) {
+            throw new Error(
+                'Impossible to generate a rent, no track available'
+            );
+        }
+
+        const requestUrl = `http://localhost:9000/start-rent/${tracker.getId()},${tracker.getId()}`;
+        const response = await fetch(requestUrl);
+        if (!response.ok) {
+            throw new Error(
+                `Rent ID request error: ${response.status} - ${await response.text()}`
+            );
+        }
+        this.rentIdMap.set(tracker.getId(), (await response.json()).id);
+
+        tracker.setIsAvailable(false);
+        tracker.activate();
     }
 
     // Metodo privato per avviare i Rent a runtime con intervalli casuali
     private startRentsInRuntime(): void {
         const minInterval = 5;
-        const maxInterval = 20;
+        const maxInterval = 15;
         let randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
-        setInterval(() => {
+        setInterval(async () => {
             if (randomInterval == 0) {
-                const rent: Rent = container.get<Rent>(TYPES.Rent);
-                this.rentList.push(rent);
-                rent.register(this);
-                rent.activate();
-
-                // Calcola un nuovo intervallo casuale
+                try {
+                    await this.startRent();
+                } catch (err) {
+                    console.error(`Error caught trying to start a new rent in runtime.\n${err}`);
+                }
                 randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
             }
 
@@ -44,17 +77,20 @@ export class Simulator implements SimulatorObserver {
         }, 1000);
     }
 
-    // Metodo per aggiornare la lista quando un Rent termina
-    updateRentEnded(id: string): void {
-        const endedRentIndex = this.rentList.findIndex((trk) => trk.getId() == id);
+    async trackEndedUpdate(id: string): Promise<void> {
+        try {
+            const requestUrl = `http://localhost:9000/close-rent/${this.rentIdMap.get(id)}`;
+            const response = await fetch(requestUrl);
+            if (!response.ok) {
+                throw new Error(
+                    `Close rent request error: ${response.status} - ${await response.text()}`
+                );
+            }
+            this.rentIdMap.delete(id);
 
-        if (endedRentIndex == -1) {
-            throw new Error(
-                `Rent with id '${id}' is ended but not found in list`
-            );
+            this.trackerMap.get(id)?.setIsAvailable(true);
+        } catch (err) {
+            throw err;
         }
-
-        // Rimuove il Rent terminato dalla lista
-        this.rentList.splice(endedRentIndex, 1);
     }
 }

@@ -1,22 +1,26 @@
-import { RentObserver } from "./RentObserver";
+import { SimulatorObserver } from "./SimulatorObserver";
 
 // Classe astratta che rappresenta un soggetto che può notificare la fine di una traccia
 export abstract class TrackerSubject {
-    private rentObserver!: RentObserver;
+    private simulatorObserver!: SimulatorObserver;
 
     // Metodo per registrare un osservatore
-    register(rentObserver: RentObserver): void {
-        this.rentObserver = rentObserver;
+    register(simulatorObserver: SimulatorObserver): void {
+        this.simulatorObserver = simulatorObserver;
     }
 
     // Metodo protetto per notificare la fine di una traccia
-    protected notifyTrackEnded(): void {
-        if (this.rentObserver == null) {
+    protected async notifyTrackEnded(id: string): Promise<void> {
+        if (this.simulatorObserver == null) {
             throw new Error(
-                `Track ended notify error: rentObserver not initialized`
+                `Track ended notify error: simulatorObserver not initialized`
             );
         }
 
-        this.rentObserver.updateTrackEnded();
+        try {
+            await this.simulatorObserver.trackEndedUpdate(id);
+        } catch (err) {
+            console.error(`Error caught trying to update the tracker map.\n${err}`);
+        }
     }
 }
