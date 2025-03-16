@@ -92,7 +92,7 @@ public class AdvertisementGenerationRequest
                   if (resultSet.next()) {
                     SystemMessage systemMessage =
                         new SystemMessage(
-                            "Genera un annuncio pubblicitario accattivante che abbia una lunghezza massima di 40 parole relativo a un esercizio commerciale. Verifica che l'utente sia effettivamente interessato al punto di interesse: nel caso contrario, non scrivere niente, nemmeno una lettera.");
+                            "Genera un annuncio pubblicitario accattivante che abbia una lunghezza massima di 40 parole relativo a un esercizio commerciale. Verifica che l'utente sia effettivamente interessato al punto di interesse: nel caso contrario, non scrivere niente, nemmeno una lettera. Se le preferenze fornite dall'utente non esprimono nulla a riguardo di una tipologia di punto di interesse, genera comunque l'annuncio per coinvolgerlo.");
                     UserMessage userMessage =
                         new UserMessage(
                             "Gli interessi dell'utente sono i seguenti: "
@@ -104,7 +104,7 @@ public class AdvertisementGenerationRequest
                     return new Tuple3<>(
                         interestedPOI.f0,
                         interestedPOI.f1.getId(),
-                        aiResponse.aiMessage().toString());
+                        aiResponse.aiMessage().text());
                   }
                 }
               } catch (SQLException e) {

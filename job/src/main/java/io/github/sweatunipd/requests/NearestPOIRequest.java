@@ -72,7 +72,7 @@ public class NearestPOIRequest
               String sql =
                   "SELECT * FROM points_of_interest AS p JOIN poi_hours ON (p.id = poi_hours.poi_id) "
                       + "WHERE ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint(?,?),4326), 3857), "
-                      + "ST_Transform(ST_SetSRID(ST_MakePoint(p.latitude,p.longitude),4326), 3857), ?) AND "
+                      + "ST_Transform(ST_SetSRID(ST_MakePoint(p.longitude,p.latitude),4326), 3857), ?) AND "
                       + "p.id NOT IN (SELECT poi_id FROM advertisements WHERE rent_id_position=?) AND "
                       + "p.category IN (SELECT category FROM user_interests JOIN rents ON (user_interests.user_id = rents.user_id) WHERE rents.id=?) AND "
                       + "? BETWEEN poi_hours.open_at AND poi_hours.close_at AND "
