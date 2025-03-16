@@ -74,8 +74,8 @@ public class AdvertisementGenerationRequest
    *
    * @param interestedPOI tuple containing the POJO representing the GPS data and the POJO
    *     representing the point of interest
-   * @param resultFuture Future of result of the processing; tuple containing the POJO of the GPS Data,
-   *     the ID of the point of interest and the string containing the result of the LLM's
+   * @param resultFuture Future of result of the processing; tuple containing the POJO of the GPS
+   *     Data, the ID of the point of interest and the string containing the result of the LLM's
    *     generation
    */
   @Override
@@ -84,13 +84,28 @@ public class AdvertisementGenerationRequest
       ResultFuture<Tuple3<GPSData, Integer, String>> resultFuture) {
     CompletableFuture.supplyAsync(
             () -> {
-              try {
-                ResultSet resultSet = getUserPreferences(interestedPOI.f0.getRentId());
-                if (resultSet.next()) {
-                  return new Tuple3<>(
-                      interestedPOI.f0,
-                      interestedPOI.f1.getId(),
-                      getAdvertisement(resultSet.getString(1), interestedPOI.f1.getOffer()));
+              try (PreparedStatement statement =
+                  connection.prepareStatement(
+                      "SELECT users.preferences FROM users JOIN rents ON rents.user_id = users.id WHERE rents.id=?"); ) {
+                statement.setInt(1, interestedPOI.f0.getRentId());
+                try (ResultSet resultSet = statement.executeQuery()) {
+                  if (resultSet.next()) {
+                    SystemMessage systemMessage =
+                        new SystemMessage(
+                            "Genera un annuncio pubblicitario accattivante che abbia una lunghezza massima di 40 parole relativo a un esercizio commerciale. Verifica che l'utente sia effettivamente interessato al punto di interesse: nel caso contrario, non scrivere niente, nemmeno una lettera.");
+                    UserMessage userMessage =
+                        new UserMessage(
+                            "Gli interessi dell'utente sono i seguenti: "
+                                + resultSet.getString("preferences")
+                                + ".\nL'offerta dell'esercizio commerciale è la seguente: "
+                                + interestedPOI.f1.getOffer()
+                                + ".");
+                    ChatResponse aiResponse = model.chat(systemMessage, userMessage);
+                    return new Tuple3<>(
+                        interestedPOI.f0,
+                        interestedPOI.f1.getId(),
+                        aiResponse.aiMessage().toString());
+                  }
                 }
               } catch (SQLException e) {
                 LOG.error(e.getMessage(), e);
@@ -106,44 +121,5 @@ public class AdvertisementGenerationRequest
                 resultFuture.complete(Collections.emptyList());
               }
             });
-  }
-
-  /**
-   * Method that queries the database to retrieve the user preferences
-   *
-   * @param rentId ID of the rent
-   * @return the result of the query
-   * @throws SQLException exception thrown by the creation and execution of the prepared stament
-   */
-  public ResultSet getUserPreferences(int rentId) throws SQLException {
-    PreparedStatement statement =
-        connection.prepareStatement(
-            "SELECT users.preferences FROM users JOIN rents ON rents.user_id = users.id WHERE rents.id=?");
-    statement.setInt(1, rentId);
-    return statement.executeQuery();
-  }
-
-  /**
-   * Method that generates the advertisement based on user preferences and what the point of
-   * interest offers
-   *
-   * @param userPreferences string containing the user preferences
-   * @param pointOfInterestOffer string containing the offer of the point of interest
-   * @return an advertisement about the point of interest or, if the AI considers the user not
-   *     interested, an empty string
-   */
-  public String getAdvertisement(String userPreferences, String pointOfInterestOffer) {
-    SystemMessage systemMessage =
-        new SystemMessage(
-            "Genera un annuncio pubblicitario accattivante che abbia una lunghezza massima di 40 parole relativo a un esercizio commerciale. Verifica che l'utente sia effettivamente interessato al punto di interesse: nel caso contrario, non scrivere niente, nemmeno una lettera.");
-    UserMessage userMessage =
-        new UserMessage(
-            "Gli interessi dell'utente sono i seguenti: "
-                + userPreferences
-                + ".\nL'offerta dell'esercizio commerciale è la seguente: "
-                + pointOfInterestOffer
-                + ".");
-    ChatResponse aiResponse = model.chat(systemMessage, userMessage);
-    return aiResponse.aiMessage().toString();
   }
 }
