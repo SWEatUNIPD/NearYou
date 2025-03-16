@@ -18,11 +18,16 @@ CREATE TABLE users
     preferences TEXT
 );
 
-CREATE TYPE category_enum AS ENUM ('restaurant','fast_food','bar','pub','cafe','clothes','shoes','other');
+CREATE TYPE category_enum AS ENUM ('Ristorazione','Istruzione','Trasporti','Servizi finanziari','Sanità','Servizi pubblici',
+    'Gestione dei rifiuti','Intrattenimento, Arte e Cultura', 'Strutture', 'Cibo e bevande',
+    'Negozio generico, grande magazzino, centro commerciale','Abbigliamento, scarpe, accessori',
+    'Negozio sconti, enti di beneficenza','Salute e bellezza','Fai da te, casalinghi, materiali edili, giardinaggio',
+    'Arredamento e interni','Elettronica','Attività esterne, sport e veicoli', 'Arte, musica, hobby',
+    'Cartoleria, regali, libri, giornali');
 
 CREATE TABLE user_interests
 (
-    user_id  SERIAL           NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    user_id  SERIAL        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     category category_enum NOT NULL,
     PRIMARY KEY (user_id, category)
 );
@@ -35,8 +40,8 @@ CREATE TABLE bikes
 CREATE TABLE rents
 (
     id        SERIAL NOT NULL PRIMARY KEY,
-    bike_id   SERIAL    NOT NULL REFERENCES bikes (id) ON DELETE CASCADE,
-    user_id   SERIAL    NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    bike_id   SERIAL NOT NULL REFERENCES bikes (id) ON DELETE CASCADE,
+    user_id   SERIAL NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     is_closed BOOL   NOT NULL DEFAULT FALSE
 );
 
@@ -70,7 +75,7 @@ CREATE INDEX idx_points_of_interest_location ON points_of_interest USING GIST (S
 
 CREATE TABLE poi_hours
 (
-    poi_id      SERIAL                 NOT NULL REFERENCES points_of_interest (id) ON DELETE CASCADE,
+    poi_id      SERIAL              NOT NULL REFERENCES points_of_interest (id) ON DELETE CASCADE,
     day_of_week INT                 NOT NULL CHECK (day_of_week <= 7 AND day_of_week >= 1),
     open_at     TIME WITH TIME ZONE NOT NULL,
     close_at    TIME WITH TIME ZONE NOT NULL,
@@ -80,10 +85,10 @@ CREATE TABLE poi_hours
 
 CREATE TABLE advertisements
 (
-    id                  SERIAL NOT NULL PRIMARY KEY,
+    id                  SERIAL                   NOT NULL PRIMARY KEY,
     time_stamp_position TIMESTAMP WITH TIME ZONE NOT NULL,
-    rent_id_position    SERIAL NOT NULL,
-    poi_id              SERIAL    NOT NULL REFERENCES points_of_interest (id) ON DELETE CASCADE,
+    rent_id_position    SERIAL                   NOT NULL,
+    poi_id              SERIAL                   NOT NULL REFERENCES points_of_interest (id) ON DELETE CASCADE,
     adv                 TEXT,
     FOREIGN KEY (time_stamp_position, rent_id_position) REFERENCES positions (time_stamp, rent_id),
     UNIQUE (time_stamp_position, rent_id_position)
