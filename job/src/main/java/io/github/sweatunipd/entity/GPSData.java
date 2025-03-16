@@ -11,7 +11,7 @@ public class GPSData {
     private float latitude;
     private float longitude;
 
-    public GPSData(@JsonProperty("rent_id") UUID rentId, @JsonProperty("latitude") float latitude, @JsonProperty("longitude") float longitude) {
+    public GPSData(@JsonProperty("rent_id") UUID rentId, @JsonProperty("latitude") float latitude, @JsonProperty("longitude") float longitude, Timestamp timestamp) {
         this.timestamp = new Timestamp(System.currentTimeMillis());
         this.rentId = rentId;
         this.latitude = latitude;

@@ -2,6 +2,10 @@ package io.github.sweatunipd;
 
 import io.github.sweatunipd.entity.GPSData;
 import io.github.sweatunipd.entity.PointOfInterest;
+import io.github.sweatunipd.requests.AdvertisementGenerationRequest;
+import io.github.sweatunipd.requests.NearestPOIRequest;
+import io.github.sweatunipd.utility.AdvertisementSerializationSchema;
+import io.github.sweatunipd.utility.GPSDataDeserializationSchema;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;

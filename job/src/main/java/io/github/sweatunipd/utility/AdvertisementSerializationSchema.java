@@ -1,4 +1,4 @@
-package io.github.sweatunipd;
+package io.github.sweatunipd.utility;
 
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.java.tuple.Tuple3;

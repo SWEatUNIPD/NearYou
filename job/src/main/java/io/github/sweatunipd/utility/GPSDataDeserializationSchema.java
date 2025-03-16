@@ -1,4 +1,4 @@
-package io.github.sweatunipd;
+package io.github.sweatunipd.utility;
 
 import io.github.sweatunipd.entity.GPSData;
 import org.apache.flink.api.common.serialization.AbstractDeserializationSchema;

@@ -1,4 +1,4 @@
-package io.github.sweatunipd;
+package io.github.sweatunipd.requests;
 
 import dev.langchain4j.data.message.SystemMessage;
 import dev.langchain4j.data.message.UserMessage;
@@ -26,7 +26,10 @@ public class AdvertisementGenerationRequest
 
   private static final Logger LOG = LoggerFactory.getLogger(AdvertisementGenerationRequest.class);
   private transient ChatLanguageModel model;
-  private transient Connection connection;
+  private transient Connection
+      connection; // FIXME: perché il transient su una classe che non viene serializzata
+
+  // (https://nightlies.apache.org/flink/flink-docs-master/docs/dev/datastream/operators/asyncio/)
 
   /**
    * Initialization method called before the trigger of the async operation
@@ -81,26 +84,13 @@ public class AdvertisementGenerationRequest
       ResultFuture<Tuple3<UUID, Integer, String>> resultFuture) {
     CompletableFuture.supplyAsync(
             () -> {
-              try (PreparedStatement statement =
-                  connection.prepareStatement(
-                      "SELECT users.preferences FROM users JOIN rents ON rents.user_id = users.id WHERE rents.id=?::UUID")) {
-                statement.setString(1, interestedPOI.f0.toString());
-                try (ResultSet resultSet = statement.executeQuery()) {
-                  if (resultSet.next()) {
-                    SystemMessage systemMessage =
-                        new SystemMessage(
-                            "Genera un annuncio pubblicitario accattivante che abbia una lunghezza massima di 40 parole relativo a un esercizio commerciale. Verifica che l'utente sia effettivamente interessato al punto di interesse: nel caso contrario, non scrivere niente, nemmeno una lettera.");
-                    UserMessage userMessage =
-                        new UserMessage(
-                            "Gli interessi dell'utente sono i seguenti: "
-                                + resultSet.getString("preferences")
-                                + ".\nL'offerta dell'esercizio commerciale è la seguente: "
-                                + interestedPOI.f1.getOffer()
-                                + ".");
-                    ChatResponse aiResponse = model.chat(systemMessage, userMessage);
-                    return new Tuple3<>(
-                        interestedPOI.f0, interestedPOI.f1.getId(), aiResponse.aiMessage().text());
-                  }
+              try {
+                ResultSet resultSet = getUserPreferences(interestedPOI.f0.toString());
+                if (resultSet.next()) {
+                  return new Tuple3<>(
+                      interestedPOI.f0,
+                      interestedPOI.f1.getId(),
+                      getAdvertisement(resultSet.getString(1), interestedPOI.f1.getOffer()));
                 }
               } catch (SQLException e) {
                 LOG.error(e.getMessage(), e);
@@ -116,5 +106,44 @@ public class AdvertisementGenerationRequest
                 resultFuture.complete(Collections.emptyList());
               }
             });
+  }
+
+  /**
+   * Method that queries the database to retrieve the user preferences
+   *
+   * @param rentId ID of the rent
+   * @return the result of the query
+   * @throws SQLException exception thrown by the creation and execution of the prepared stament
+   */
+  public ResultSet getUserPreferences(String rentId) throws SQLException {
+    PreparedStatement statement =
+        connection.prepareStatement(
+            "SELECT users.preferences FROM users JOIN rents ON rents.user_id = users.id WHERE rents.id=?::UUID");
+    statement.setString(1, rentId);
+    return statement.executeQuery();
+  }
+
+  /**
+   * Method that generates the advertisement based on user preferences and what the point of
+   * interest offers
+   *
+   * @param userPreferences string containing the user preferences
+   * @param pointOfInterestOffer string containing the offer of the point of interest
+   * @return an advertisement about the point of interest or, if the AI considers the user not
+   *     interested, an empty string
+   */
+  public String getAdvertisement(String userPreferences, String pointOfInterestOffer) {
+    SystemMessage systemMessage =
+        new SystemMessage(
+            "Genera un annuncio pubblicitario accattivante che abbia una lunghezza massima di 40 parole relativo a un esercizio commerciale. Verifica che l'utente sia effettivamente interessato al punto di interesse: nel caso contrario, non scrivere niente, nemmeno una lettera.");
+    UserMessage userMessage =
+        new UserMessage(
+            "Gli interessi dell'utente sono i seguenti: "
+                + userPreferences
+                + ".\nL'offerta dell'esercizio commerciale è la seguente: "
+                + pointOfInterestOffer
+                + ".");
+    ChatResponse aiResponse = model.chat(systemMessage, userMessage);
+    return aiResponse.aiMessage().toString();
   }
 }
