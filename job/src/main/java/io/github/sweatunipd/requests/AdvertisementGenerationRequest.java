@@ -5,6 +5,7 @@ import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
+import io.github.sweatunipd.entity.GPSData;
 import io.github.sweatunipd.entity.PointOfInterest;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -22,7 +23,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class AdvertisementGenerationRequest
-    extends RichAsyncFunction<Tuple2<UUID, PointOfInterest>, Tuple3<UUID, Integer, String>> {
+    extends RichAsyncFunction<Tuple2<GPSData, PointOfInterest>, Tuple3<GPSData, Integer, String>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(AdvertisementGenerationRequest.class);
   private transient ChatLanguageModel model;
@@ -80,8 +81,8 @@ public class AdvertisementGenerationRequest
    */
   @Override
   public void asyncInvoke(
-      Tuple2<UUID, PointOfInterest> interestedPOI,
-      ResultFuture<Tuple3<UUID, Integer, String>> resultFuture) {
+      Tuple2<GPSData, PointOfInterest> interestedPOI,
+      ResultFuture<Tuple3<GPSData, Integer, String>> resultFuture) {
     CompletableFuture.supplyAsync(
             () -> {
               try {

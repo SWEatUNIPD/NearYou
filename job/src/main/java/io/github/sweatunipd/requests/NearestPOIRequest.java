@@ -13,10 +13,9 @@ import java.sql.*;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<UUID, PointOfInterest>> {
+public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<GPSData, PointOfInterest>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(NearestPOIRequest.class);
   private transient Connection connection;
@@ -66,14 +65,14 @@ public class NearestPOIRequest extends RichAsyncFunction<GPSData, Tuple2<UUID, P
    */
   @Override
   public void asyncInvoke(
-      GPSData gpsData, ResultFuture<Tuple2<UUID, PointOfInterest>> resultFuture) {
+      GPSData gpsData, ResultFuture<Tuple2<GPSData, PointOfInterest>> resultFuture) {
     CompletableFuture.supplyAsync(
             () -> {
               try {
                 ResultSet resultSet = getNearestPOI(gpsData);
                 if (resultSet.next()) {
                   return new Tuple2<>(
-                      gpsData.getRentId(),
+                      gpsData,
                       new PointOfInterest(
                           resultSet.getInt("id"),
                           resultSet.getString("merchant_vat"),

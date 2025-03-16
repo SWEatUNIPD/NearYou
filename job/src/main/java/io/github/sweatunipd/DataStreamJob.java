@@ -102,12 +102,12 @@ public class DataStreamJob {
         .name("Sink GPS Data in Database");
 
     // Data Stream of the interested POI for every single position in range
-    DataStream<Tuple2<UUID, PointOfInterest>> interestedPOI =
+    DataStream<Tuple2<GPSData, PointOfInterest>> interestedPOI =
         AsyncDataStream.unorderedWait(
             kafka, new NearestPOIRequest(), 1000, TimeUnit.MILLISECONDS, 1000);
 
     // Data Stream of generated advertisements
-    DataStream<Tuple3<UUID, Integer, String>> generatedAdvertisement =
+    DataStream<Tuple3<GPSData, Integer, String>> generatedAdvertisement =
         AsyncDataStream.unorderedWait(
             interestedPOI,
             new AdvertisementGenerationRequest(),
@@ -116,8 +116,8 @@ public class DataStreamJob {
             1000);
 
     // Configuration of the Kafka Sink
-    KafkaSink<Tuple3<UUID, Integer, String>> kafkaSink =
-        KafkaSink.<Tuple3<UUID, Integer, String>>builder()
+    KafkaSink<Tuple3<GPSData, Integer, String>> kafkaSink =
+        KafkaSink.<Tuple3<GPSData, Integer, String>>builder()
             .setBootstrapServers(config.getString("kafka.bootstrap.server", "localhost:9094"))
             .setRecordSerializer(
                 KafkaRecordSerializationSchema.builder()
@@ -133,11 +133,12 @@ public class DataStreamJob {
     // Sink of the generated advertisement in DB
     generatedAdvertisement.addSink(
         JdbcSink.sink(
-            "INSERT INTO advertisements VALUES (?::UUID, ?, ?)",
+            "INSERT INTO advertisements(time_stamp_position, rent_id_position, poi_id, adv) VALUES (?, ?::UUID, ?, ?)",
             (preparedStatement, advertisement) -> {
-              preparedStatement.setString(1, advertisement.f0.toString());
-              preparedStatement.setInt(2, advertisement.f1);
-              preparedStatement.setString(3, advertisement.f2);
+              preparedStatement.setTimestamp(1, advertisement.f0.getTimestamp());
+              preparedStatement.setString(2, advertisement.f0.getRentId().toString());
+              preparedStatement.setInt(3, advertisement.f1);
+              preparedStatement.setString(4, advertisement.f2);
             },
             JdbcExecutionOptions.builder()
                 .withBatchSize(1000)
