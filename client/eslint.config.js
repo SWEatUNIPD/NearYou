@@ -16,7 +16,6 @@ export default [
         plugins: {
             "@typescript-eslint": tsPlugin,
         },
-        // https://typescript-eslint.io/rules/
         rules: {
             "@typescript-eslint/array-type": "error", // Segnala se non viene usata la dichiarazione [] per gli array
             "@typescript-eslint/consistent-generic-constructors": "error", // Segnala se non viene usata l'annotazione "constructor" per le dichiarazioni di classe
@@ -30,7 +29,8 @@ export default [
             "@typescript-eslint/triple-slash-reference": "error", // Segnala se si utilizza "/// <reference path='...' />" invece di "import"
             "@typescript-eslint/no-extra-non-null-assertion": "error", // Segnala se si usa "!!" per forzare una variabile a non essere null (è inutile più di un !)
             "@typescript-eslint/no-inferrable-types": "error", // Segnala se si cerca di esplicitare il tipo di una variabile quando è già implicito (con int, string e boolean)
-            "@typescript-eslint/no-explicit-any": "error", // Segnala se si usa "any" come tipo di variabile im modo esplicito
+            // in un test serve (?)
+            "@typescript-eslint/no-explicit-any": "error", // Segnala se si usa "any" come tipo di variabile in modo esplicito
         }
     },
 ];

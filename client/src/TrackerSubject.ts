@@ -3,7 +3,7 @@ import { SimulatorObserver } from "./SimulatorObserver";
 // Classe astratta che rappresenta un soggetto che può notificare la fine di una traccia
 export abstract class TrackerSubject {
     private simulatorObserver!: SimulatorObserver;
-
+    
     // Metodo per registrare un osservatore
     register(simulatorObserver: SimulatorObserver): void {
         this.simulatorObserver = simulatorObserver;

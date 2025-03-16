@@ -6,7 +6,7 @@ import { env } from './config/EnvManager';
 
 // Definisce la classe Simulator come iniettabile tramite Inversify
 export class Simulator implements SimulatorObserver {
-    private rentIdMap: Map<string, string> = new Map();
+    private rentIdMap = new Map<string, string>();
 
     constructor(
         @inject(TYPES.TrackerMap)

@@ -10,7 +10,7 @@ import { TYPES } from './config/InversifyType';
 @injectable()
 // Classe che rappresenta un tracker che invia dati GPS a un broker Kafka
 export class Tracker extends TrackerSubject {
-    private isAvailable: boolean = true;
+    private isAvailable = true;
     private consumer!: Consumer;
 
     constructor(
