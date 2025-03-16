@@ -45,7 +45,7 @@ export class Simulator implements SimulatorObserver {
             );
         }
 
-        const requestUrl = `http://localhost:9000/start-rent/${tracker.getId()},${tracker.getId()}`;
+        const requestUrl = `http://localhost:9000/start-rent/${tracker.getId()}/${tracker.getId()}`;
         const response = await fetch(requestUrl);
         if (!response.ok) {
             throw new Error(
