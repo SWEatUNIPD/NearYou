@@ -11,7 +11,7 @@ public class GPSData {
   private float longitude;
 
   public GPSData(
-      @JsonProperty("rent_id") int rentId,
+      @JsonProperty("trackerId") int rentId,
       @JsonProperty("latitude") float latitude,
       @JsonProperty("longitude") float longitude) {
     this.timestamp = new Timestamp(System.currentTimeMillis());
