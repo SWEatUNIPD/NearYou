@@ -3,81 +3,95 @@ import { Tracker } from '../../src/Tracker';
 import { KafkaManager } from '../../src/KafkaManager';
 import { TrackFetcher } from '../../src/TrackFetcher';
 import { GeoPoint } from '../../src/GeoPoint';
-
-import { TYPES } from '../../src/config/InversifyType';
-import { TrackerSubject } from '../../src/TrackerSubject';
-import { SimulatorObserver } from '../../src/SimulatorObserver';
-import { Producer } from 'kafkajs';
 import { env } from '../../src/config/EnvManager';
 
 describe('Tracker', () => {
     let kafkaManagerMock: KafkaManager;
 
-  beforeEach(() => {
-    kafkaManagerMock = {
-        initAndConnectConsumer: vi.fn(),
-        initAndConnectProducer: vi.fn(),
-        disconnectProducer: vi.fn(),
-        disconnectConsumer: vi.fn(),
-        sendMessage: vi.fn(),
-    } as unknown as KafkaManager;
-  });
+    // Prima di ogni test, inizializza un mock per KafkaManager
+    beforeEach(() => {
+        kafkaManagerMock = {
+            initAndConnectConsumer: vi.fn(), // Mock per initAndConnectConsumer
+            initAndConnectProducer: vi.fn(), // Mock per initAndConnectProducer
+            disconnectProducer: vi.fn(),     // Mock per disconnectProducer
+            disconnectConsumer: vi.fn(),     // Mock per disconnectConsumer
+            sendMessage: vi.fn(),            // Mock per sendMessage
+        } as unknown as KafkaManager; // Casting a KafkaManager per evitare errori di tipo
+    });
 
-  it('should call fetchTrack and move methods when activate is called', async () => {
-    const trackerId = 'tracker-1';
-    const tracker = new Tracker(trackerId, kafkaManagerMock);
+    // Test: Verifica che i metodi fetchTrack e move vengano chiamati quando activate è eseguito
+    it('dovrebbe chiamare i metodi fetchTrack e move quando activate è chiamato', async () => {
+        const trackerId = 'tracker-1';
+        const tracker = new Tracker(trackerId, kafkaManagerMock);
 
-    const trackFetcherMock = {
-        fetchTrack: vi.fn().mockResolvedValue([new GeoPoint(1, 1), new GeoPoint(2, 2)]),
-    } as unknown as TrackFetcher;
+        // Mock per TrackFetcher che simula il fetch di una traccia
+        const trackFetcherMock = {
+            fetchTrack: vi.fn().mockResolvedValue([new GeoPoint(1, 1), new GeoPoint(2, 2)]),
+        } as unknown as TrackFetcher;
 
-    vi.spyOn(TrackFetcher.prototype, 'fetchTrack').mockImplementation(trackFetcherMock.fetchTrack);
+        // Sostituisci il metodo fetchTrack di TrackFetcher con il mock
+        vi.spyOn(TrackFetcher.prototype, 'fetchTrack').mockImplementation(trackFetcherMock.fetchTrack);
 
-    await tracker.activate();
+        // Esegui il metodo activate
+        await tracker.activate();
 
-    expect(trackFetcherMock.fetchTrack).toHaveBeenCalled();
-  });
+        // Verifica che fetchTrack sia stato chiamato
+        expect(trackFetcherMock.fetchTrack).toHaveBeenCalled();
+    });
 
-  it('should handle error when fetchTrack throws an exception', async () => {
-    const trackerId = 'tracker-1';
-    const tracker = new Tracker(trackerId, kafkaManagerMock);
+    // Test: Verifica che gli errori vengano gestiti correttamente quando fetchTrack genera un'eccezione
+    it('dovrebbe gestire correttamente un errore quando fetchTrack genera un\'eccezione', async () => {
+        const trackerId = 'tracker-1';
+        const tracker = new Tracker(trackerId, kafkaManagerMock);
 
-    const trackFetcherMock = {
-        fetchTrack: vi.fn().mockRejectedValue(new Error('Fetch error')),
-    } as unknown as TrackFetcher;
+        // Mock per TrackFetcher che simula un errore durante il fetch
+        const trackFetcherMock = {
+            fetchTrack: vi.fn().mockRejectedValue(new Error('Errore durante il fetch')),
+        } as unknown as TrackFetcher;
 
-    vi.spyOn(TrackFetcher.prototype, 'fetchTrack').mockImplementation(trackFetcherMock.fetchTrack);
+        // Sostituisci il metodo fetchTrack di TrackFetcher con il mock
+        vi.spyOn(TrackFetcher.prototype, 'fetchTrack').mockImplementation(trackFetcherMock.fetchTrack);
 
-    await tracker.activate();
+        // Esegui il metodo activate
+        await tracker.activate();
 
-    expect(trackFetcherMock.fetchTrack).toHaveBeenCalled();
-  });
+        // Verifica che fetchTrack sia stato chiamato
+        expect(trackFetcherMock.fetchTrack).toHaveBeenCalled();
+    });
 
-  it('should initialize and connect consumer when listenToAdv is called', async () => {
-    const trackerId = 'tracker-1';
-    const tracker = new Tracker(trackerId, kafkaManagerMock);
+    // Test: Verifica che il consumer venga inizializzato e connesso correttamente quando listenToAdv è chiamato
+    it('dovrebbe inizializzare e connettere il consumer quando listenToAdv è chiamato', async () => {
+        const trackerId = 'tracker-1';
+        const tracker = new Tracker(trackerId, kafkaManagerMock);
 
-    await tracker.activate();
+        // Esegui il metodo activate
+        await tracker.activate();
 
-    expect(kafkaManagerMock.initAndConnectConsumer).toHaveBeenCalledWith('adv-data', 'trackers', expect.any(Function));
-  });
+        // Verifica che initAndConnectConsumer sia stato chiamato con i parametri corretti
+        expect(kafkaManagerMock.initAndConnectConsumer).toHaveBeenCalledWith('adv-data', 'trackers', expect.any(Function));
+    });
 
-  it('should handle error when initAndConnectConsumer throws an exception', async () => {
-    const trackerId = 'tracker-1';
-    const tracker = new Tracker(trackerId, kafkaManagerMock);
+    // Test: Verifica che gli errori vengano gestiti correttamente quando initAndConnectConsumer genera un'eccezione
+    it('dovrebbe gestire correttamente un errore quando initAndConnectConsumer genera un\'eccezione', async () => {
+        const trackerId = 'tracker-1';
+        const tracker = new Tracker(trackerId, kafkaManagerMock);
 
-    vi.spyOn(kafkaManagerMock, 'initAndConnectConsumer').mockRejectedValue(new Error('Consumer error'));
+        // Simula un errore durante l'inizializzazione e connessione del consumer
+        vi.spyOn(kafkaManagerMock, 'initAndConnectConsumer').mockRejectedValue(new Error('Errore del consumer'));
 
-    await tracker.activate();
+        // Esegui il metodo activate
+        await tracker.activate();
 
-    expect(kafkaManagerMock.initAndConnectConsumer).toHaveBeenCalledWith('adv-data', 'trackers', expect.any(Function));
-  });
+        // Verifica che initAndConnectConsumer sia stato chiamato con i parametri corretti
+        expect(kafkaManagerMock.initAndConnectConsumer).toHaveBeenCalledWith('adv-data', 'trackers', expect.any(Function));
+    });
 
+    // Test: Verifica che lo stato di disponibilità sia restituito correttamente
+    it('dovrebbe restituire correttamente lo stato di disponibilità quando getIsAvailable è chiamato', () => {
+        const trackerId = 'tracker-1';
+        const tracker = new Tracker(trackerId, kafkaManagerMock);
 
-  it('should return the correct availability status when getIsAvailable is called', () => {
-    const trackerId = 'tracker-1';
-    const tracker = new Tracker(trackerId, kafkaManagerMock);
-
-    expect(tracker.getIsAvailable()).toBe(true);
-  });
+        // Verifica che lo stato di disponibilità sia true di default
+        expect(tracker.getIsAvailable()).toBe(true);
+    });
 });

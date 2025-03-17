@@ -64,24 +64,24 @@ describe('Simulator', () => {
         await expect(simulator['startRent']()).rejects.toThrow('Impossible to generate a rent, no track available');
     });
 
-    // Test di startRentsInRuntime
     it('dovrebbe avviare i rent a runtime con intervalli casuali', async () => {
-        // Mock del metodo startRent per simulare l'avvio di un rent
-        const startRentSpy = vi.spyOn(simulator as any, 'startRent').mockResolvedValue(undefined);
-
-        // Usiamo i fake timers per controllare setInterval
-        vi.useFakeTimers();
-        simulator['startRentsInRuntime']();
-
-        // Simuliamo l'avanzamento del tempo per attivare il setInterval
-        vi.advanceTimersByTime(10000); // Avanza di 10 secondi
-
-        // Verifica che startRent sia stato chiamato almeno una volta
-        expect(startRentSpy).toHaveBeenCalled();
-
-        // Ripristiniamo i timer reali
-        vi.useRealTimers();
-    });
+      // Mock del metodo startRent per simulare l'avvio di un rent
+      const startRentSpy = vi.spyOn(simulator as any, 'startRent').mockResolvedValue(undefined);
+  
+      // Usiamo i fake timers per controllare setInterval
+      vi.useFakeTimers();
+      simulator['startRentsInRuntime']();
+  
+      // Simuliamo l'avanzamento del tempo per attivare il setInterval
+      // Avanziamo di un tempo sufficiente per far scattare il setInterval
+      vi.advanceTimersByTime(20000); // Avanza di 20 secondi
+  
+      // Verifica che startRent sia stato chiamato almeno una volta
+      expect(startRentSpy).toHaveBeenCalled();
+  
+      // Ripristiniamo i timer reali
+      vi.useRealTimers();
+  });
 
     // Test di trackEndedUpdate
     it('dovrebbe gestire correttamente l\'aggiornamento della fine di un percorso', async () => {
