@@ -23,6 +23,8 @@ export class Tracker extends TrackerSubject {
 
     // Metodo per attivare il tracker
     async activate(): Promise<void> {
+        this.isAvailable = false;
+
         await this.listenToAdv();
 
         const trackFetcher = new TrackFetcher();
@@ -32,6 +34,8 @@ export class Tracker extends TrackerSubject {
         } catch (err) {
             console.error(err);
         }
+
+        this.isAvailable = true;
     }
 
     // Metodo privato per ascoltare i messaggi di advertising
@@ -89,15 +93,15 @@ export class Tracker extends TrackerSubject {
         }
     }
 
-    getId(): string {
-        return this.id;
-    }
+    // getId(): string {
+    //     return this.id;
+    // }
 
     getIsAvailable(): boolean {
         return this.isAvailable;
     }
 
-    setIsAvailable(value: boolean): void {
-        this.isAvailable = value;
-    }
+    // setIsAvailable(value: boolean): void {
+    //     this.isAvailable = value;
+    // }
 }

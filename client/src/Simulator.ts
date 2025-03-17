@@ -28,7 +28,7 @@ export class Simulator implements SimulatorObserver {
             }
         }
 
-        this.startRentsInRuntime();
+        // this.startRentsInRuntime();
     }
 
     private async startRent(): Promise<void> {
@@ -45,16 +45,16 @@ export class Simulator implements SimulatorObserver {
             );
         }
 
-        const requestUrl = `http://localhost:9000/start-rent/${tracker.getId()}/${tracker.getId()}`;
-        const response = await fetch(requestUrl);
-        if (!response.ok) {
-            throw new Error(
-                `Rent ID request error: ${response.status} - ${await response.text()}`
-            );
-        }
-        this.rentIdMap.set(tracker.getId(), (await response.json()).id);
+        // const requestUrl = `http://localhost:9000/start-rent/${tracker.getId()}/${tracker.getId()}`;
+        // const response = await fetch(requestUrl);
+        // if (!response.ok) {
+        //     throw new Error(
+        //         `Rent ID request error: ${response.status} - ${await response.text()}`
+        //     );
+        // }
+        // this.rentIdMap.set(tracker.getId(), (await response.json()).id);
 
-        tracker.setIsAvailable(false);
+        // tracker.setIsAvailable(false);
         tracker.activate();
     }
 
@@ -79,16 +79,16 @@ export class Simulator implements SimulatorObserver {
 
     async trackEndedUpdate(id: string): Promise<void> {
         try {
-            const requestUrl = `http://localhost:9000/close-rent/${this.rentIdMap.get(id)}`;
-            const response = await fetch(requestUrl);
-            if (!response.ok) {
-                throw new Error(
-                    `Close rent request error: ${response.status} - ${await response.text()}`
-                );
-            }
-            this.rentIdMap.delete(id);
+            // const requestUrl = `http://localhost:9000/close-rent/${this.rentIdMap.get(id)}`;
+            // const response = await fetch(requestUrl);
+            // if (!response.ok) {
+            //     throw new Error(
+            //         `Close rent request error: ${response.status} - ${await response.text()}`
+            //     );
+            // }
+            // this.rentIdMap.delete(id);
 
-            this.trackerMap.get(id)?.setIsAvailable(true);
+            // this.trackerMap.get(id)?.setIsAvailable(true);
         } catch (err) {
             throw err;
         }
