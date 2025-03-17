@@ -1,45 +1,75 @@
-import { TrackerSubject } from "../../src/TrackerSubject";
-import { RentObserver } from "../../src/RentObserver";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { TrackerSubject } from '../../src/TrackerSubject';
+import { SimulatorObserver } from '../../src/SimulatorObserver';
 
-// Classe concreta per testare la classe astratta
-class ConcreteTrackerSubject extends TrackerSubject {}
+// Implementazione concreta di TrackerSubject per i test
+class TestTrackerSubject extends TrackerSubject {
+  // Esponi il metodo protetto per i test
+  public async testNotifyTrackEnded(id: string): Promise<void> {
+    await this.notifyTrackEnded(id);
+  }
+}
 
-describe("TrackerSubject", () => {
-    // Registra correttamente un osservatore (Register)
-    it("Registra correttamente un osservatore", () => {
-        const subject = new ConcreteTrackerSubject();
-        const mockObserver = {
-            updateTrackEnded: vi.fn(), // Mock del metodo updateTrackEnded
-        } as unknown as RentObserver; // Casting per rispettare l'interfaccia
+describe('TrackerSubject', () => {
+  let trackerSubject: TestTrackerSubject;
+  let mockSimulatorObserver: SimulatorObserver;
 
-        subject.register(mockObserver);
+  beforeEach(() => {
+    // Reset dei mock
+    vi.resetAllMocks();
 
-        // Verifica che l'osservatore sia stato registrato correttamente
-        expect(() => subject["notifyTrackEnded"]()).not.toThrow();
-    });
+    // Creazione del mock per SimulatorObserver
+    mockSimulatorObserver = {
+      trackEndedUpdate: vi.fn().mockResolvedValue(undefined)
+    } as unknown as SimulatorObserver;
 
-    // Lancia un errore se rentObserver non è registrato
-    it("Lancia un errore se rentObserver non è registrato", () => {
-        const subject = new ConcreteTrackerSubject();
+    // Creazione dell'istanza di TestTrackerSubject
+    trackerSubject = new TestTrackerSubject();
+  });
 
-        // Verifica che venga generato un errore se l'osservatore non è registrato
-        // Uso una  funzione anonima (o "arrow function") che esegue il metodo notifyTrackEnded sull'oggetto subject
-        expect(() => subject["notifyTrackEnded"]()).toThrowError(
-            "Track ended notify error: rentObserver not initialized"
-        );
-    });
+  it('dovrebbe registrare correttamente un osservatore', () => {
+    trackerSubject.register(mockSimulatorObserver);
+    
+    // Verifica che l'osservatore sia stato registrato correttamente
+    // chiamando un metodo che utilizza l'osservatore
+    trackerSubject.testNotifyTrackEnded('test-id').catch(() => {});
+    
+    expect(mockSimulatorObserver.trackEndedUpdate).toHaveBeenCalledWith('test-id');
+  });
 
-    // Chiama updateTrackEnded sull'osservatore quando notifyTrackEnded è chiamato
-    it("Chiama updateTrackEnded sull'osservatore quando notifyTrackEnded è chiamato", () => {
-        const subject = new ConcreteTrackerSubject();
-        const mockObserver = {
-            updateTrackEnded: vi.fn(), // Mock della funzione updateTrackEnded
-        } as unknown as RentObserver;
+  it('dovrebbe lanciare un errore se si tenta di notificare senza un osservatore registrato', async () => {
+    // Non registrare alcun osservatore
+    await expect(trackerSubject.testNotifyTrackEnded('test-id'))
+      .rejects
+      .toThrow('Track ended notify error: simulatorObserver not initialized');
+  });
 
-        subject.register(mockObserver);
-        subject["notifyTrackEnded"](); // Chiamata al metodo protetto
+  it('dovrebbe notificare correttamente l\'osservatore quando una traccia termina', async () => {
+    // Registrazione dell'osservatore
+    trackerSubject.register(mockSimulatorObserver);
+    
+    // Notifica della fine della traccia
+    await trackerSubject.testNotifyTrackEnded('test-id');
+    
+    // Verifica che l'osservatore sia stato notificato con l'ID corretto
+    expect(mockSimulatorObserver.trackEndedUpdate).toHaveBeenCalledWith('test-id');
+  });
 
-        // Verifica che il metodo updateTrackEnded sia stato chiamato
-        expect(mockObserver.updateTrackEnded).toHaveBeenCalled();
-    });
+  it('dovrebbe gestire errori durante la notifica all\'osservatore', async () => {
+    // Mock per simulare un errore nella notifica
+    mockSimulatorObserver.trackEndedUpdate = vi.fn().mockRejectedValue(new Error('Observer error'));
+    
+    // Mock di console.error
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    
+    // Registrazione dell'osservatore
+    trackerSubject.register(mockSimulatorObserver);
+    
+    // Notifica della fine della traccia
+    await trackerSubject.testNotifyTrackEnded('test-id');
+    
+    // Verifica che l'errore sia stato gestito e loggato
+    expect(consoleSpy).toHaveBeenCalled();
+    expect(consoleSpy.mock.calls[0][0]).toContain('Error caught trying to update the tracker map');
+  });
 });

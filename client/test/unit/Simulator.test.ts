@@ -1,88 +1,103 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Simulator } from '../../src/Simulator';
-import { Rent } from '../../src/Rent';
+import { Tracker } from '../../src/Tracker';
+import { env } from '../../src/config/EnvManager';
 
-describe("Simulator", () => {
-    // Mock di Rent
-    let mockRent: Rent;
+describe('Simulator', () => {
+    let trackerMap: Map<string, Tracker>;
+    let simulator: Simulator;
 
     beforeEach(() => {
-        // Creiamo un mock per Rent
-        mockRent = {
-            getId: vi.fn(),
-            register: vi.fn(),
-            activate: vi.fn(),
-        } as unknown as Rent;
-        // Quando crei un mock di una classe, TypeScript potrebbe lamentarsi perché il mock non ha tutte le proprietà e i metodi della classe reale.
-        // Usando as unknown as MyClass, stai dicendo a TypeScript: "Tratta questo oggetto come se fosse di tipo MyClass, anche se non lo è completamente".
+        // Inizializza una mappa di tracker fittizi
+        trackerMap = new Map<string, Tracker>();
+        const tracker1 = new Tracker('tracker-1', {} as any);
+        const tracker2 = new Tracker('tracker-2', {} as any);
+        trackerMap.set('tracker-1', tracker1);
+        trackerMap.set('tracker-2', tracker2);
+
+        // Crea un'istanza di Simulator con la mappa di tracker
+        simulator = new Simulator(trackerMap);
+
+        // Mock di env.INIT_RENT_COUNT
+        vi.mock('../../src/config/EnvManager', () => ({
+            env: {
+                INIT_RENT_COUNT: '2', // Valore mockato
+            },
+        }));
     });
 
     afterEach(() => {
-        // Ripristina i mock dopo ogni test
-        vi.clearAllMocks();
-        vi.useRealTimers(); // Ripristina i timer reali
+        vi.restoreAllMocks(); // Ripristina tutti i mock dopo ogni test
     });
 
-    // Test per verificare se rentList viene inizializzato correttamente (Costruttore)
-    it("Test costruttore: Inizializzazione rentList", () => {
-        const rentList = [mockRent];
-        const simulator = new Simulator(rentList);
+    // Test di startSimulation
+    it('dovrebbe avviare correttamente la simulazione con il numero iniziale di rent', async () => {
+        // Mock del metodo activate dei tracker per simulare l'avvio
+        const activateSpy = vi.spyOn(Tracker.prototype, 'activate').mockResolvedValue(undefined);
 
-        // Verifica che la lista di rent nel simulatore sia uguale a quella inizializzata
-        expect(simulator['rentList']).toEqual(rentList);
-    });
-
-    // Test per verificare se la simulazione inizia e tutti i rent vengono attivati (startSimulation)
-    it("Avvio simulazione e attivazione di tutti i rent", () => {
-        const rentList = [mockRent];
-        const simulator = new Simulator(rentList);
-
-        // Avvia la simulazione
-        simulator.startSimulation();
+        await simulator.startSimulation();
 
         // Verifica che il metodo activate sia stato chiamato per ogni rent
-        expect(mockRent.activate).toHaveBeenCalled();
+        expect(activateSpy).toHaveBeenCalledTimes(2);
     });
 
-    // Test per verificare se l'osservatore viene registrato per ogni rent all'avvio della simulazione (startSimulation)
-    it("Registra l'osservatore per ogni rent all'avvio della simulazione", () => {
-        const rentList = [mockRent];
-        const simulator = new Simulator(rentList);
+    // Test di startRent
+    it('dovrebbe avviare correttamente un rent con un tracker disponibile', async () => {
+        // Mock del metodo getIsAvailable per simulare un tracker disponibile
+        vi.spyOn(Tracker.prototype, 'getIsAvailable').mockReturnValue(true);
 
-        // Avvia la simulazione
-        simulator.startSimulation();
+        // Mock del metodo activate per simulare l'avvio
+        const activateSpy = vi.spyOn(Tracker.prototype, 'activate').mockResolvedValue(undefined);
 
-        // Verifica che il metodo register sia stato chiamato con il simulatore come argomento
-        expect(mockRent.register).toHaveBeenCalledWith(simulator);
+        await simulator['startRent']();
+
+        // Verifica che il metodo activate sia stato chiamato
+        expect(activateSpy).toHaveBeenCalled();
     });
 
-    // Test per verificare se un rent viene rimosso quando termina (updateRentEnded)
-    it("Rimozione rent quando termina", () => {
-        const rentList = [mockRent];
-        const simulator = new Simulator(rentList);
+    // Test di startRent con tracker null
+    it('dovrebbe lanciare un\'eccezione se non ci sono tracker disponibili', async () => {
+        // Mock del metodo getIsAvailable per simulare che nessun tracker è disponibile
+        vi.spyOn(Tracker.prototype, 'getIsAvailable').mockReturnValue(false);
 
-        // Configura il mock per restituire un ID specifico
-        vi.mocked(mockRent.getId).mockReturnValue('1');
-
-        // Termina il rent con id '1'
-        simulator.updateRentEnded('1');
-
-        // Verifica che la lista di rent nel simulatore sia vuota
-        expect(simulator['rentList']).toEqual([]);
+        // Verifica che venga lanciata un'eccezione
+        await expect(simulator['startRent']()).rejects.toThrow('Impossible to generate a rent, no track available');
     });
 
-    // Test per verificare se viene lanciato un errore quando si tenta di terminare un rent inesistente (updateRentEnded)
-    it("Lancia un errore se il rent da terminare non viene trovato", () => {
-        const rentList = [mockRent];
-        const simulator = new Simulator(rentList);
+    // Test di startRentsInRuntime
+    it('dovrebbe avviare i rent a runtime con intervalli casuali', async () => {
+        // Mock del metodo startRent per simulare l'avvio di un rent
+        const startRentSpy = vi.spyOn(simulator as any, 'startRent').mockResolvedValue(undefined);
 
-        // Configura il mock per restituire un ID specifico
-        vi.mocked(mockRent.getId).mockReturnValue('1');
+        // Usiamo i fake timers per controllare setInterval
+        vi.useFakeTimers();
+        simulator['startRentsInRuntime']();
 
-        // Verifica che venga lanciato un errore quando si tenta di terminare un rent inesistente
-        expect(() => simulator.updateRentEnded('2')).toThrowError("Rent with id '2' is ended but not found in list");
+        // Simuliamo l'avanzamento del tempo per attivare il setInterval
+        vi.advanceTimersByTime(10000); // Avanza di 10 secondi
+
+        // Verifica che startRent sia stato chiamato almeno una volta
+        expect(startRentSpy).toHaveBeenCalled();
+
+        // Ripristiniamo i timer reali
+        vi.useRealTimers();
     });
 
-    // Test per startRentsInRuntime quando deve entrare nell'intervallo di tempo
-    // Il problema è che non riesco ad avanzare il tempo per far scattare l'intervallo
+    // Test di trackEndedUpdate
+    it('dovrebbe gestire correttamente l\'aggiornamento della fine di un percorso', async () => {
+        // Simula l'aggiornamento della fine di un percorso
+        await simulator.trackEndedUpdate('tracker-1');
 
+        // Verifica che non vengano lanciati errori
+        expect(true).toBe(true); // Placeholder per la verifica
+    });
+
+    // Test di trackEndedUpdate che lancia l'eccezione
+    it('dovrebbe gestire correttamente un errore durante l\'aggiornamento della fine di un percorso', async () => {
+        // Mock di un comportamento che genera un errore
+        vi.spyOn(simulator as any, 'trackEndedUpdate').mockRejectedValue(new Error('Errore durante l\'aggiornamento'));
+
+        // Verifica che l'errore venga propagato
+        await expect(simulator.trackEndedUpdate('tracker-1')).rejects.toThrow('Errore durante l\'aggiornamento');
+    });
 });

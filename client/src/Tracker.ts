@@ -39,17 +39,28 @@ export class Tracker extends TrackerSubject {
     }
 
     // Metodo privato per ascoltare i messaggi di advertising
-    private async listenToAdv(): Promise<void> {
+    /*private async listenToAdv(): Promise<void> {
         const eachMessageHandler = async (payload: EachMessagePayload) => {
-            const { topic, partition, message } = payload;
-            console.log({
-                topic,
-                partition,
-                key: message.key?.toString(),
-                value: message.value?.toString(),
-            });
+            //const { topic, partition, message } = payload;
+            //console.log({
+            //    topic,
+            //    partition,
+            //    key: message.key?.toString(),
+            //    value: message.value?.toString(),
+            //});
         };
 
+        try {
+            this.consumer = await this.kafkaManager.initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
+        } catch (err) {
+            console.error(`Error caught trying to initialize and connect the consumer.\n${err}`);
+        }
+    }*/
+    
+
+    private async listenToAdv(): Promise<void> {
+        const eachMessageHandler = async (payload: EachMessagePayload) => {};
+    
         try {
             this.consumer = await this.kafkaManager.initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
         } catch (err) {

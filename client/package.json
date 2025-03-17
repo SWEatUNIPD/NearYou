@@ -17,11 +17,11 @@
     "@types/express": "^5.0.0",
     "client": "file:",
     "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "inversify": "^7.1.0",
     "kafkajs": "^2.2.4",
-    "tsx": "^4.19.2",
-    "express": "^4.21.2",
-    "postgres": "^3.4.5"
+    "postgres": "^3.4.5",
+    "tsx": "^4.19.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

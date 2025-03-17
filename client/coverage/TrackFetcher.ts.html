@@ -25,14 +25,14 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Statements</span>
-                <span class='fraction'>43/43</span>
+                <span class='fraction'>53/53</span>
             </div>
         
             
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Branches</span>
-                <span class='fraction'>10/10</span>
+                <span class='fraction'>12/12</span>
             </div>
         
             
@@ -46,7 +46,7 @@
             <div class='fl pad1y space-right2'>
                 <span class="strong">100% </span>
                 <span class="quiet">Lines</span>
-                <span class='fraction'>43/43</span>
+                <span class='fraction'>53/53</span>
             </div>
         
             
@@ -119,7 +119,17 @@
 <a name='L54'></a><a href='#L54'>54</a>
 <a name='L55'></a><a href='#L55'>55</a>
 <a name='L56'></a><a href='#L56'>56</a>
-<a name='L57'></a><a href='#L57'>57</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
+<a name='L57'></a><a href='#L57'>57</a>
+<a name='L58'></a><a href='#L58'>58</a>
+<a name='L59'></a><a href='#L59'>59</a>
+<a name='L60'></a><a href='#L60'>60</a>
+<a name='L61'></a><a href='#L61'>61</a>
+<a name='L62'></a><a href='#L62'>62</a>
+<a name='L63'></a><a href='#L63'>63</a>
+<a name='L64'></a><a href='#L64'>64</a>
+<a name='L65'></a><a href='#L65'>65</a>
+<a name='L66'></a><a href='#L66'>66</a>
+<a name='L67'></a><a href='#L67'>67</a></td><td class="line-coverage quiet"><span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
@@ -127,6 +137,7 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
@@ -146,14 +157,19 @@
 <span class="cline-any cline-yes">2x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">3x</span>
-<span class="cline-any cline-yes">1248x</span>
-<span class="cline-any cline-yes">1248x</span>
-<span class="cline-any cline-yes">1248x</span>
+<span class="cline-any cline-yes">1166x</span>
+<span class="cline-any cline-yes">1166x</span>
+<span class="cline-any cline-yes">1166x</span>
 <span class="cline-any cline-yes">3x</span>
 <span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">4x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">5x</span>
@@ -173,6 +189,10 @@
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span>
 <span class="cline-any cline-yes">4x</span>
+<span class="cline-any cline-yes">5x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
+<span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-yes">5x</span>
 <span class="cline-any cline-yes">1x</span>
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">import { env } from './config/EnvManager';
@@ -183,52 +203,62 @@ import { GeoPoint } from "./GeoPoint";
 export class TrackFetcher {
     // Metodo che recupera i punti di una traccia geografica
     async fetchTrack(): Promise&lt;GeoPoint[]&gt; {
-        const response = await this.request();
+        try {
+            const response = await this.request();
 &nbsp;
-        const routeData = await response.json();
-        const encodedPolyline = routeData.routes[0].geometry;
+            const routeData = await response.json();
+            const encodedPolyline = routeData.routes[0].geometry;
 &nbsp;
-        const trackPoints = polyline.decode(encodedPolyline);
+            const trackPoints = polyline.decode(encodedPolyline);
 &nbsp;
-        let sampledPoints;
-        const maxNumTrackPoints = Number(env.MAX_NUM_TRACK_POINTS);
-        if (maxNumTrackPoints &lt; trackPoints.length) {
-            const step = Math.floor(trackPoints.length / maxNumTrackPoints);
-            sampledPoints = trackPoints
-                .filter((_, index) =&gt; index % step == 0)
-                .slice(0, maxNumTrackPoints);
-        } else {
-            sampledPoints = trackPoints;
-        }
-&nbsp;
-        return sampledPoints.map(([latitude, longitude]): GeoPoint =&gt; {
-            {
-                return new GeoPoint(latitude, longitude);
+            let sampledPoints;
+            const maxNumTrackPoints = Number(env.MAX_NUM_TRACK_POINTS);
+            if (maxNumTrackPoints &lt; trackPoints.length) {
+                const step = Math.floor(trackPoints.length / maxNumTrackPoints);
+                sampledPoints = trackPoints
+                    .filter((_, index) =&gt; index % step == 0)
+                    .slice(0, maxNumTrackPoints);
+            } else {
+                sampledPoints = trackPoints;
             }
-        });
+&nbsp;
+            return sampledPoints.map(([latitude, longitude]): GeoPoint =&gt; {
+                {
+                    return new GeoPoint(latitude, longitude);
+                }
+            });
+        } catch (err) {
+            console.error(`Error caught trying to fetch a track.`);
+            throw err;
+        }
     }
 &nbsp;
     // Metodo privato che effettua una richiesta per ottenere i dati della traccia
     private async request(): Promise&lt;Response&gt; {
-        const radiusGeoPoint = GeoPoint.radiusKmToGeoPoint(Number(env.MAP_RADIUS_KM));
-        const mapCenter = new GeoPoint(Number(env.MAP_CENTER_LAT), Number(env.MAP_CENTER_LON));
-        const startGeoPoint = mapCenter.generateRandomPoint(radiusGeoPoint);
-        const destGeoPoint = mapCenter.generateRandomPoint(radiusGeoPoint);
-        
-        const osrmUrl = 'http://router.project-osrm.org/route/v1/cycling';
-        const requestUrl = `${osrmUrl}/${startGeoPoint.getLongitude()},${startGeoPoint.getLatitude()};${destGeoPoint.getLongitude()},${destGeoPoint.getLatitude()}`;
+        try {
+            const radiusGeoPoint = GeoPoint.radiusKmToGeoPoint(Number(env.MAP_RADIUS_KM));
+            const mapCenter = new GeoPoint(Number(env.MAP_CENTER_LAT), Number(env.MAP_CENTER_LON));
+            const startGeoPoint = mapCenter.generateRandomPoint(radiusGeoPoint);
+            const destGeoPoint = mapCenter.generateRandomPoint(radiusGeoPoint);
 &nbsp;
-        const response = await fetch(
-            requestUrl + '?overview=full&amp;geometries=polyline'
-        );
+            const osrmUrl = 'http://router.project-osrm.org/route/v1/cycling';
+            const requestUrl = `${osrmUrl}/${startGeoPoint.getLongitude()},${startGeoPoint.getLatitude()};${destGeoPoint.getLongitude()},${destGeoPoint.getLatitude()}`;
 &nbsp;
-        if (!response.ok) {
-            throw new Error(
-                `Track request error: ${response.status} - ${await response.text()}`
+            const response = await fetch(
+                requestUrl + '?overview=full&amp;geometries=polyline'
             );
-        }
 &nbsp;
-        return response;
+            if (!response.ok) {
+                throw new Error(
+                    `Track request error: ${response.status} - ${await response.text()}`
+                );
+            }
+&nbsp;
+            return response;
+        } catch (err) {
+            console.error(`Error caught trying to generate the OSRM request.`);
+            throw err;
+        }
     }
 }
 &nbsp;</pre></td></tr></table></pre>
@@ -238,7 +268,7 @@ export class TrackFetcher {
             <div class='footer quiet pad2 space-top1 center small'>
                 Code coverage generated by
                 <a href="https://istanbul.js.org/" target="_blank" rel="noopener noreferrer">istanbul</a>
-                at 2025-03-13T10:37:45.660Z
+                at 2025-03-17T22:11:31.489Z
             </div>
         <script src="prettify.js"></script>
         <script>
