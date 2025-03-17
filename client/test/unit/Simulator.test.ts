@@ -1,17 +1,26 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { Simulator } from '../../src/Simulator';
 import { Tracker } from '../../src/Tracker';
-import { env } from '../../src/config/EnvManager';
+import { KafkaManager } from '../../src/KafkaManager';
 
 describe('Simulator', () => {
     let trackerMap: Map<string, Tracker>;
     let simulator: Simulator;
 
+    // Definisci un mock per KafkaManager
+    const kafkaManagerMock = {
+        initAndConnectConsumer: vi.fn(),
+        initAndConnectProducer: vi.fn(),
+        disconnectProducer: vi.fn(),
+        disconnectConsumer: vi.fn(),
+        sendMessage: vi.fn(),
+    } as unknown as KafkaManager;
+
     beforeEach(() => {
         // Inizializza una mappa di tracker fittizi
         trackerMap = new Map<string, Tracker>();
-        const tracker1 = new Tracker('tracker-1', {} as any);
-        const tracker2 = new Tracker('tracker-2', {} as any);
+        const tracker1 = new Tracker('tracker-1', kafkaManagerMock);
+        const tracker2 = new Tracker('tracker-2', kafkaManagerMock);
         trackerMap.set('tracker-1', tracker1);
         trackerMap.set('tracker-2', tracker2);
 
@@ -64,24 +73,29 @@ describe('Simulator', () => {
         await expect(simulator['startRent']()).rejects.toThrow('Impossible to generate a rent, no track available');
     });
 
+    // Test di startRentsInRuntime
     it('dovrebbe avviare i rent a runtime con intervalli casuali', async () => {
-      // Mock del metodo startRent per simulare l'avvio di un rent
-      const startRentSpy = vi.spyOn(simulator as any, 'startRent').mockResolvedValue(undefined);
-  
-      // Usiamo i fake timers per controllare setInterval
-      vi.useFakeTimers();
-      simulator['startRentsInRuntime']();
-  
-      // Simuliamo l'avanzamento del tempo per attivare il setInterval
-      // Avanziamo di un tempo sufficiente per far scattare il setInterval
-      vi.advanceTimersByTime(20000); // Avanza di 20 secondi
-  
-      // Verifica che startRent sia stato chiamato almeno una volta
-      expect(startRentSpy).toHaveBeenCalled();
-  
-      // Ripristiniamo i timer reali
-      vi.useRealTimers();
-  });
+        // Definisci un'interfaccia per i metodi privati
+        interface SimulatorPrivateMethods {
+            startRent: () => Promise<void>;
+        }
+
+        // Mock del metodo startRent per simulare l'avvio di un rent
+        const startRentSpy = vi.spyOn(simulator as unknown as SimulatorPrivateMethods, 'startRent').mockResolvedValue(undefined);
+
+        // Usiamo i fake timers per controllare setInterval
+        vi.useFakeTimers();
+        simulator['startRentsInRuntime']();
+
+        // Simuliamo l'avanzamento del tempo per attivare il setInterval
+        vi.advanceTimersByTime(20000); // Avanza di 20 secondi
+
+        // Verifica che startRent sia stato chiamato almeno una volta
+        expect(startRentSpy).toHaveBeenCalled();
+
+        // Ripristiniamo i timer reali
+        vi.useRealTimers();
+    });
 
     // Test di trackEndedUpdate
     it('dovrebbe gestire correttamente l\'aggiornamento della fine di un percorso', async () => {
@@ -94,8 +108,13 @@ describe('Simulator', () => {
 
     // Test di trackEndedUpdate che lancia l'eccezione
     it('dovrebbe gestire correttamente un errore durante l\'aggiornamento della fine di un percorso', async () => {
+        // Definisci un'interfaccia per i metodi privati
+        interface SimulatorPrivateMethods {
+            trackEndedUpdate: (id: string) => Promise<void>;
+        }
+
         // Mock di un comportamento che genera un errore
-        vi.spyOn(simulator as any, 'trackEndedUpdate').mockRejectedValue(new Error('Errore durante l\'aggiornamento'));
+        vi.spyOn(simulator as unknown as SimulatorPrivateMethods, 'trackEndedUpdate').mockRejectedValue(new Error('Errore durante l\'aggiornamento'));
 
         // Verifica che l'errore venga propagato
         await expect(simulator.trackEndedUpdate('tracker-1')).rejects.toThrow('Errore durante l\'aggiornamento');

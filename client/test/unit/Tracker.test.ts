@@ -3,7 +3,6 @@ import { Tracker } from '../../src/Tracker';
 import { KafkaManager } from '../../src/KafkaManager';
 import { TrackFetcher } from '../../src/TrackFetcher';
 import { GeoPoint } from '../../src/GeoPoint';
-import { env } from '../../src/config/EnvManager';
 
 describe('Tracker', () => {
     let kafkaManagerMock: KafkaManager;
