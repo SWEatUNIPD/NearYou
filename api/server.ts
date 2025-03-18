@@ -1,5 +1,6 @@
 import express from 'express'
 import postgres from 'postgres';
+import {v4 as uuidv4} from 'uuid';
 
 const app = express()
 const port = 9000
@@ -12,29 +13,7 @@ const sql = postgres({
 })
 
 app.get('/start-rent/:userId/:bikeId', async (req, res) => {
-    const userId = req.params.userId
-    const bikeId = req.params.bikeId
-
-    const opened_rent = await sql`SELECT * FROM rents WHERE user_id = ${userId} AND is_closed = false`;
-    if (opened_rent.count > 0) {
-        res.status(418).send("User has an opened rent at the moment.");
-        return;
-    }
-
-    const rented_bike = await sql`SELECT * FROM rents WHERE bike_id = ${bikeId} AND is_closed = false`;
-    if (rented_bike.count > 0) {
-        res.status(418).send("Bike is already rented.");
-        return;
-    }
-
-    try {
-        const rent = await sql`
-        INSERT INTO rents (bike_id, user_id) VALUES (${bikeId}, ${userId}) RETURNING id`;
-        res.send(rent.at(0));
-        return;
-    } catch (e) {
-        res.status(404).send("The bike or the user were not found.");
-    }
+    res.status(200).send(JSON.stringify({"id":uuidv4()}));
 })
 
 app.get('/close-rent/:rentId', async (req, res) => {

@@ -35,7 +35,7 @@ services:
       - ./create.sql:/docker-entrypoint-initdb.d/create.sql
 
   grafana:
-    image: grafana/grafana
+    image: rmilan/grafana-rm
     restart: always
     ports:
       - 3000:3000
