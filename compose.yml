@@ -33,6 +33,12 @@ services:
       - POSTGRES_DB=admin
     volumes:
       - ./create.sql:/docker-entrypoint-initdb.d/create.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "admin", "-U", "admin"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
 
   grafana:
     image: grafana/grafana
@@ -46,7 +52,8 @@ services:
     image: flink:1.20.1-scala_2.12-java17
     depends_on:
       - kafka
-      - postgis
+      - postgis:
+          condition: service_healthy
     ports:
       - 8081:8081
     command: standalone-job --job-classname io.github.sweatunipd.DataStreamJob
