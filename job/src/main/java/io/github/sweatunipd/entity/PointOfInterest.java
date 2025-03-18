@@ -1,5 +1,7 @@
 package io.github.sweatunipd.entity;
 
+import java.util.Objects;
+
 public class PointOfInterest {
   private int id;
   private String merchantVAT;
@@ -104,5 +106,22 @@ public class PointOfInterest {
         + offer
         + '\''
         + '}';
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof PointOfInterest that)) return false;
+    return id == that.id
+        && Float.compare(latitude, that.latitude) == 0
+        && Float.compare(longitude, that.longitude) == 0
+        && Objects.equals(merchantVAT, that.merchantVAT)
+        && Objects.equals(name, that.name)
+        && Objects.equals(category, that.category)
+        && Objects.equals(offer, that.offer);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, merchantVAT, name, latitude, longitude, category, offer);
   }
 }

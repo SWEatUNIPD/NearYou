@@ -1,4 +1,3 @@
 package io.github.sweatunipd.requests;
 
-class NearestPOIRequestTest {
-}
+public class DataStreamJobTest {}

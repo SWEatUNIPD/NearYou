@@ -1,7 +1,11 @@
 package io.github.sweatunipd.requests;
 
+import io.github.sweatunipd.database.DataSourceSingleton;
 import io.github.sweatunipd.entity.GPSData;
 import io.github.sweatunipd.entity.PointOfInterest;
+import java.sql.*;
+import java.util.Collections;
+import java.util.concurrent.CompletableFuture;
 import org.apache.flink.api.common.functions.OpenContext;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
@@ -9,17 +13,21 @@ import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.*;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
-
 public class NearestPOIRequest
     extends RichAsyncFunction<GPSData, Tuple2<GPSData, PointOfInterest>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(NearestPOIRequest.class);
-  private transient Connection connection;
+  private Connection connection;
+  private static final String STMT =
+      "SELECT * FROM points_of_interest AS p JOIN poi_hours ON (p.id = poi_hours.poi_id) "
+          + "WHERE ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint(?,?),4326), 3857), "
+          + "ST_Transform(ST_SetSRID(ST_MakePoint(p.longitude,p.latitude),4326), 3857), ?) AND "
+          + "p.id NOT IN (SELECT poi_id FROM advertisements WHERE rent_id_position=?) AND "
+          + "p.category IN (SELECT category FROM user_interests JOIN rents ON (user_interests.user_id = rents.user_id) WHERE rents.id=?) AND "
+          + "? BETWEEN poi_hours.open_at AND poi_hours.close_at AND "
+          + "EXTRACT(ISODOW FROM ?::TIMESTAMP) = poi_hours.day_of_week "
+          + "ORDER BY ST_Distance(ST_SetSRID(ST_MakePoint(?,?),4326), "
+          + "ST_SetSRID(ST_MakePoint(p.latitude,p.longitude),4326)) LIMIT 1";
 
   public NearestPOIRequest() {}
 
@@ -32,28 +40,16 @@ public class NearestPOIRequest
    */
   @Override
   public void open(OpenContext openContext) throws SQLException {
-    if (connection == null) {
-      Map<String, String> config = getRuntimeContext().getGlobalJobParameters();
-      Properties props = new Properties();
-      props.setProperty("user", config.getOrDefault("postgres.username", "admin"));
-      props.setProperty("password", config.getOrDefault("postgres.password", "adminadminadmin"));
-      connection =
-          DriverManager.getConnection(
-              config.getOrDefault(
-                  "postgres.jdbc.connection.url", "jdbc:postgresql://localhost:5432/admin"),
-              props);
-    }
+    connection = DataSourceSingleton.getConnection();
   }
 
   /** Method that closes the async request * */
   @Override
   public void close() {
-    if (connection != null) {
-      try {
-        connection.close();
-      } catch (SQLException e) {
-        LOG.error(e.getMessage(), e);
-      }
+    try {
+      connection.close();
+    } catch (SQLException e) {
+      LOG.error(e.getMessage(), e);
     }
   }
 
@@ -69,20 +65,10 @@ public class NearestPOIRequest
       GPSData gpsData, ResultFuture<Tuple2<GPSData, PointOfInterest>> resultFuture) {
     CompletableFuture.supplyAsync(
             () -> {
-              String sql =
-                  "SELECT * FROM points_of_interest AS p JOIN poi_hours ON (p.id = poi_hours.poi_id) "
-                      + "WHERE ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint(?,?),4326), 3857), "
-                      + "ST_Transform(ST_SetSRID(ST_MakePoint(p.longitude,p.latitude),4326), 3857), ?) AND "
-                      + "p.id NOT IN (SELECT poi_id FROM advertisements WHERE rent_id_position=?) AND "
-                      + "p.category IN (SELECT category FROM user_interests JOIN rents ON (user_interests.user_id = rents.user_id) WHERE rents.id=?) AND "
-                      + "? BETWEEN poi_hours.open_at AND poi_hours.close_at AND "
-                      + "EXTRACT(ISODOW FROM ?::TIMESTAMP) = poi_hours.day_of_week "
-                      + "ORDER BY ST_Distance(ST_SetSRID(ST_MakePoint(?,?),4326), "
-                      + "ST_SetSRID(ST_MakePoint(p.latitude,p.longitude),4326)) LIMIT 1";
-              try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+              try (PreparedStatement preparedStatement = connection.prepareStatement(STMT)) {
                 preparedStatement.setFloat(1, gpsData.getLongitude());
                 preparedStatement.setFloat(2, gpsData.getLatitude());
-                preparedStatement.setInt(3, 100); // FIXME: range
+                preparedStatement.setInt(3, 100); // Range of 100 meters
                 preparedStatement.setInt(4, gpsData.getRentId());
                 preparedStatement.setInt(5, gpsData.getRentId());
                 preparedStatement.setTimestamp(6, gpsData.getTimestamp());
@@ -103,11 +89,10 @@ public class NearestPOIRequest
                             resultSet.getString("description")));
                   }
                 }
-                return null;
               } catch (SQLException e) {
                 LOG.error(e.getMessage(), e);
-                return null;
               }
+              return null;
             })
         .thenAccept(
             result -> {
