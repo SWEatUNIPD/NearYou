@@ -6,6 +6,10 @@ import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/**
+ * @author SWEatUNIPD
+ */
+
 public class DataSourceSingleton {
   private static HikariDataSource instance;
   private static HikariConfig config = new HikariConfig();

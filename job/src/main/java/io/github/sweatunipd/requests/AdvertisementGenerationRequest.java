@@ -20,6 +20,9 @@ import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author SWEatUNIPD
+ */
 public class AdvertisementGenerationRequest
     extends RichAsyncFunction<Tuple2<GPSData, PointOfInterest>, Tuple3<GPSData, PointOfInterest, String>> {
 

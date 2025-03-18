@@ -31,6 +31,9 @@ import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
 
+/**
+ * @author SWEatUNIPD
+ */
 public class DataStreamJob {
   public static void main(String[] args) throws Exception {
     // Execution Environment Configuration

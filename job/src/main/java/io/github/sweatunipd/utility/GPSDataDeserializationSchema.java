@@ -9,6 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+/**
+ * @author SWEatUNIPD
+ */
 public class GPSDataDeserializationSchema extends AbstractDeserializationSchema<GPSData> {
   private static final Logger LOG = LoggerFactory.getLogger(GPSDataDeserializationSchema.class);
   private transient ObjectMapper objectMapper;

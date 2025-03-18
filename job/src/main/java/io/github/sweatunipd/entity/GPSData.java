@@ -4,6 +4,9 @@ import java.sql.Timestamp;
 import java.util.Objects;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * @author SWEatUNIPD
+ */
 public class GPSData {
   private Timestamp timestamp;
   private int rentId;

@@ -7,6 +7,9 @@ import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.node.ObjectNode;
 
+/**
+ * @author SWEatUNIPD
+ */
 public class AdvertisementSerializationSchema
         implements SerializationSchema<Tuple3<GPSData, PointOfInterest, String>> {
     private static final ObjectMapper MAPPER = new ObjectMapper();

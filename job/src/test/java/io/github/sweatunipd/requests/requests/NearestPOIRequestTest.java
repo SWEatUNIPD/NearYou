@@ -28,6 +28,9 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
+/**
+ * @author SWEatUNIPD
+ */
 @ExtendWith(MockitoExtension.class)
 class NearestPOIRequestTest {
   @Mock private Connection connection;
