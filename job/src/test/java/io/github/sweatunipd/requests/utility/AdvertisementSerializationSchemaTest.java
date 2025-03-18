@@ -8,6 +8,4 @@ import org.mockito.Mock;
  */
 public class AdvertisementSerializationSchemaTest {
     @Mock private DeserializationSchema.InitializationContext context;
-
-
 }
