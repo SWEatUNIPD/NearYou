@@ -19,15 +19,17 @@ public class NearestPOIRequest
   private static final Logger LOG = LoggerFactory.getLogger(NearestPOIRequest.class);
   private Connection connection;
   private static final String STMT =
-      "SELECT * FROM points_of_interest AS p JOIN poi_hours ON (p.id = poi_hours.poi_id) "
-          + "WHERE ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint(?,?),4326), 3857), "
-          + "ST_Transform(ST_SetSRID(ST_MakePoint(p.longitude,p.latitude),4326), 3857), ?) AND "
-          + "p.id NOT IN (SELECT poi_id FROM advertisements WHERE rent_id_position=?) AND "
-          + "p.category IN (SELECT category FROM user_interests JOIN rents ON (user_interests.user_id = rents.user_id) WHERE rents.id=?) AND "
-          + "? BETWEEN poi_hours.open_at AND poi_hours.close_at AND "
-          + "EXTRACT(ISODOW FROM ?::TIMESTAMP) = poi_hours.day_of_week "
-          + "ORDER BY ST_Distance(ST_SetSRID(ST_MakePoint(?,?),4326), "
-          + "ST_SetSRID(ST_MakePoint(p.latitude,p.longitude),4326)) LIMIT 1";
+      """
+                          SELECT p.latitude, p.longitude, p.vat, p.name, p.category, p.offer FROM points_of_interest AS p JOIN poi_hours ON (p.latitude = poi_hours.latitude_poi AND p.longitude=poi_hours.longitude_poi)
+                          WHERE ST_DWithin(ST_Transform(ST_SetSRID(ST_MakePoint(?,?),4326), 3857),
+                          ST_Transform(ST_SetSRID(ST_MakePoint(p.longitude,p.latitude),4326), 3857), ?) AND
+                          (p.latitude, p.longitude) NOT IN (SELECT latitude_poi, longitude_poi FROM advertisements WHERE rent_id=?) AND
+                          p.category IN (SELECT user_interests.category FROM user_interests JOIN rents ON (user_interests.user_email=rents.user_email) WHERE rents.id=?) AND
+                          ? BETWEEN poi_hours.open_at AND poi_hours.close_at AND
+                          EXTRACT(ISODOW FROM ?::TIMESTAMP) = poi_hours.day_of_week
+                          ORDER BY ST_Distance(ST_SetSRID(ST_MakePoint(?,?),4326),
+                          ST_SetSRID(ST_MakePoint(p.longitude,p.latitude),4326)) LIMIT 1
+                  """;
 
   public NearestPOIRequest() {}
 
@@ -68,7 +70,7 @@ public class NearestPOIRequest
               try (PreparedStatement preparedStatement = connection.prepareStatement(STMT)) {
                 preparedStatement.setFloat(1, gpsData.getLongitude());
                 preparedStatement.setFloat(2, gpsData.getLatitude());
-                preparedStatement.setInt(3, 100); // Range of 100 meters
+                preparedStatement.setInt(3, 100);
                 preparedStatement.setInt(4, gpsData.getRentId());
                 preparedStatement.setInt(5, gpsData.getRentId());
                 preparedStatement.setTimestamp(6, gpsData.getTimestamp());
@@ -80,13 +82,12 @@ public class NearestPOIRequest
                     return new Tuple2<>(
                         gpsData,
                         new PointOfInterest(
-                            resultSet.getInt("id"),
-                            resultSet.getString("merchant_vat"),
-                            resultSet.getString("name"),
-                            resultSet.getFloat("latitude"),
-                            resultSet.getFloat("longitude"),
-                            resultSet.getString("category"),
-                            resultSet.getString("description")));
+                            resultSet.getFloat(1),
+                            resultSet.getFloat(2),
+                            resultSet.getString(3),
+                            resultSet.getString(4),
+                            resultSet.getString(5),
+                            resultSet.getString(6)));
                   }
                 }
               } catch (SQLException e) {

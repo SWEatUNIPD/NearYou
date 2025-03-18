@@ -120,20 +120,17 @@ class NearestPOIRequestTest {
       dataSourceMockedStatic.when(DataSourceSingleton::getConnection).thenReturn(connection);
       nearestPOIRequest.open(openContext);
       GPSData gpsData = new GPSData(1, 78.5f, 78.5f);
-      PointOfInterest pointOfInterest =
-          new PointOfInterest(1, "IT101010101", "Test", 78.5f, 78.5f, "Test", "Test");
+      PointOfInterest pointOfInterest = new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test", "Test", "Test");
 
       Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
       Mockito.when(preparedStatement.executeQuery()).thenReturn(resultSet);
       Mockito.when(resultSet.next()).thenReturn(true);
-      Mockito.when(resultSet.getInt("id")).thenReturn(pointOfInterest.getId());
-      Mockito.when(resultSet.getString("merchant_vat"))
-          .thenReturn(pointOfInterest.getMerchantVAT());
-      Mockito.when(resultSet.getString("name")).thenReturn(pointOfInterest.getName());
-      Mockito.when(resultSet.getFloat("latitude")).thenReturn(pointOfInterest.getLatitude());
-      Mockito.when(resultSet.getFloat("longitude")).thenReturn(pointOfInterest.getLongitude());
-      Mockito.when(resultSet.getString("category")).thenReturn(pointOfInterest.getCategory());
-      Mockito.when(resultSet.getString("description")).thenReturn(pointOfInterest.getOffer());
+      Mockito.when(resultSet.getFloat(1)).thenReturn(pointOfInterest.latitude());
+      Mockito.when(resultSet.getFloat(2)).thenReturn(pointOfInterest.longitude());
+      Mockito.when(resultSet.getString(3)).thenReturn(pointOfInterest.vat());
+      Mockito.when(resultSet.getString(4)).thenReturn(pointOfInterest.name());
+      Mockito.when(resultSet.getString(5)).thenReturn(pointOfInterest.category());
+      Mockito.when(resultSet.getString(6)).thenReturn(pointOfInterest.offer());
 
       Tuple2<GPSData, PointOfInterest> tuple = new Tuple2<>(gpsData, pointOfInterest);
 

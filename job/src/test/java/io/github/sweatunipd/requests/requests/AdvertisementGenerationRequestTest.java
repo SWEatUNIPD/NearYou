@@ -42,7 +42,7 @@ public class AdvertisementGenerationRequestTest {
   @Mock OpenAiChatModel openAiChatModel;
   @Mock private OpenAiChatModel.OpenAiChatModelBuilder openAiChatModelBuilder;
   @Mock private PreparedStatement preparedStatement;
-  @Mock private ResultFuture<Tuple3<GPSData, Integer, String>> resultFuture;
+  @Mock private ResultFuture<Tuple3<GPSData, PointOfInterest, String>> resultFuture;
   @Mock private ResultSet resultSet;
   @Mock private ChatResponse chatResponse;
   @Mock private AiMessage aiMessage;
@@ -217,12 +217,12 @@ public class AdvertisementGenerationRequestTest {
       // Creation of GPSData and PointOfInterest and the input tuple
       GPSData gpsData = new GPSData(1, 78.5f, 78.5f);
       PointOfInterest pointOfInterest =
-          new PointOfInterest(1, "IT101010101", "Test", 78.5f, 78.5f, "Test", "Test");
+          new PointOfInterest(78,78.5f, "IT101010101", "Test", "Test", "Test");
       Tuple2<GPSData, PointOfInterest> tuple = new Tuple2<>(gpsData, pointOfInterest);
 
       // asyncInvoke() execution
-      Tuple3<GPSData, Integer, String> output =
-          new Tuple3<>(gpsData, pointOfInterest.getId(), "Test advertisement");
+      Tuple3<GPSData, PointOfInterest, String> output =
+          new Tuple3<>(gpsData, pointOfInterest, "Test advertisement");
       advertisementGenerationRequest.asyncInvoke(tuple, resultFuture);
 
       // Tests
@@ -255,8 +255,7 @@ public class AdvertisementGenerationRequestTest {
 
       // Creation of GPSData and PointOfInterest and the input tuple
       GPSData gpsData = new GPSData(1, 78.5f, 78.5f);
-      PointOfInterest pointOfInterest =
-          new PointOfInterest(1, "IT101010101", "Test", 78.5f, 78.5f, "Test", "Test");
+      PointOfInterest pointOfInterest = new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test", "Test", "Test");
       Tuple2<GPSData, PointOfInterest> tuple = new Tuple2<>(gpsData, pointOfInterest);
 
       // asyncInvoke() execution
@@ -291,8 +290,7 @@ public class AdvertisementGenerationRequestTest {
 
       // Creation of GPSData and PointOfInterest and the input tuple
       GPSData gpsData = new GPSData(1, 78.5f, 78.5f);
-      PointOfInterest pointOfInterest =
-          new PointOfInterest(1, "IT101010101", "Test", 78.5f, 78.5f, "Test", "Test");
+      PointOfInterest pointOfInterest = new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test", "Test", "Test");
       Tuple2<GPSData, PointOfInterest> tuple = new Tuple2<>(gpsData, pointOfInterest);
 
       // Logger
@@ -337,8 +335,7 @@ public class AdvertisementGenerationRequestTest {
 
       // Creation of GPSData and PointOfInterest and the input tuple
       GPSData gpsData = new GPSData(1, 78.5f, 78.5f);
-      PointOfInterest pointOfInterest =
-              new PointOfInterest(1, "IT101010101", "Test", 78.5f, 78.5f, "Test", "Test");
+      PointOfInterest pointOfInterest = new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test", "Test", "Test");
       Tuple2<GPSData, PointOfInterest> tuple = new Tuple2<>(gpsData, pointOfInterest);
 
       // Logger

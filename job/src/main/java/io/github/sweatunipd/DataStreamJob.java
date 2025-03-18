@@ -6,6 +6,7 @@ import io.github.sweatunipd.requests.AdvertisementGenerationRequest;
 import io.github.sweatunipd.requests.NearestPOIRequest;
 import io.github.sweatunipd.utility.AdvertisementSerializationSchema;
 import io.github.sweatunipd.utility.GPSDataDeserializationSchema;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
@@ -13,6 +14,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.GlobalConfiguration;
+import org.apache.flink.configuration.RestartStrategyOptions;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
 import org.apache.flink.connector.jdbc.JdbcExecutionOptions;
@@ -32,7 +34,16 @@ import org.apache.kafka.clients.admin.NewTopic;
 public class DataStreamJob {
   public static void main(String[] args) throws Exception {
     // Execution Environment Configuration
-    final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    Configuration configuration = new Configuration();
+    configuration.set(RestartStrategyOptions.RESTART_STRATEGY, "fixed-delay");
+    configuration.set(
+        RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_ATTEMPTS,
+        3); // number of restart attempts
+    configuration.set(
+        RestartStrategyOptions.RESTART_STRATEGY_FIXED_DELAY_DELAY, Duration.ofSeconds(10)); // delay
+    final StreamExecutionEnvironment env =
+        StreamExecutionEnvironment.getExecutionEnvironment(configuration);
+
     Configuration config = GlobalConfiguration.loadConfiguration();
     env.getConfig().setGlobalJobParameters(config);
 
@@ -106,7 +117,7 @@ public class DataStreamJob {
             kafka, new NearestPOIRequest(), 1000, TimeUnit.MILLISECONDS, 1000);
 
     // Data Stream of generated advertisements
-    DataStream<Tuple3<GPSData, Integer, String>> generatedAdvertisement =
+    DataStream<Tuple3<GPSData, PointOfInterest, String>> generatedAdvertisement =
         AsyncDataStream.unorderedWait(
             interestedPOI,
             new AdvertisementGenerationRequest(),
@@ -115,8 +126,8 @@ public class DataStreamJob {
             1000);
 
     // Configuration of the Kafka Sink
-    KafkaSink<Tuple3<GPSData, Integer, String>> kafkaSink =
-        KafkaSink.<Tuple3<GPSData, Integer, String>>builder()
+    KafkaSink<Tuple3<GPSData, PointOfInterest, String>> kafkaSink =
+        KafkaSink.<Tuple3<GPSData, PointOfInterest, String>>builder()
             .setBootstrapServers(config.getString("kafka.bootstrap.server", "localhost:9094"))
             .setRecordSerializer(
                 KafkaRecordSerializationSchema.builder()
@@ -132,12 +143,13 @@ public class DataStreamJob {
     // Sink of the generated advertisement in DB
     generatedAdvertisement.addSink(
         JdbcSink.sink(
-            "INSERT INTO advertisements(time_stamp_position, rent_id_position, poi_id, adv) VALUES (?, ?, ?, ?)",
+            "INSERT INTO advertisements(latitude_poi, longitude_poi, rent_id, time_stamp_position, adv) VALUES (?, ?, ?, ?, ?)",
             (preparedStatement, advertisement) -> {
-              preparedStatement.setTimestamp(1, advertisement.f0.getTimestamp());
-              preparedStatement.setInt(2, advertisement.f0.getRentId());
-              preparedStatement.setInt(3, advertisement.f1);
-              preparedStatement.setString(4, advertisement.f2);
+              preparedStatement.setFloat(1, advertisement.f1.latitude());
+              preparedStatement.setFloat(2, advertisement.f1.longitude());
+              preparedStatement.setInt(3, advertisement.f0.getRentId());
+              preparedStatement.setTimestamp(4, advertisement.f0.getTimestamp());
+              preparedStatement.setString(5, advertisement.f2);
             },
             JdbcExecutionOptions.builder()
                 .withBatchSize(1000)

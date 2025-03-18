@@ -21,7 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AdvertisementGenerationRequest
-    extends RichAsyncFunction<Tuple2<GPSData, PointOfInterest>, Tuple3<GPSData, Integer, String>> {
+    extends RichAsyncFunction<Tuple2<GPSData, PointOfInterest>, Tuple3<GPSData, PointOfInterest, String>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(AdvertisementGenerationRequest.class);
   private transient ChatLanguageModel model;
@@ -64,12 +64,12 @@ public class AdvertisementGenerationRequest
   @Override
   public void asyncInvoke(
       Tuple2<GPSData, PointOfInterest> value,
-      ResultFuture<Tuple3<GPSData, Integer, String>> resultFuture) {
+      ResultFuture<Tuple3<GPSData, PointOfInterest, String>> resultFuture) {
     CompletableFuture.supplyAsync(
             () -> {
               try (PreparedStatement statement =
                   connection.prepareStatement(
-                      "SELECT users.preferences FROM users JOIN rents ON rents.user_id = users.id WHERE rents.id=?")) {
+                      "SELECT users.text_area FROM users JOIN rents ON rents.user_email = users.email WHERE rents.id=?")) {
                 statement.setInt(1, value.f0.getRentId());
                 try (ResultSet resultSet = statement.executeQuery()) {
                   if (resultSet.next()) {
@@ -79,15 +79,15 @@ public class AdvertisementGenerationRequest
                     UserMessage userMessage =
                         new UserMessage(
                             "Gli interessi dell'utente sono i seguenti: "
-                                + resultSet.getString("preferences")
+                                + resultSet.getString(1)
                                 + ".\nL'offerta dell'esercizio commerciale è la seguente: "
-                                + value.f1.getOffer()
+                                + value.f1.offer()
                                 + ".\nLa categoria dell'esercizio commerciale è: "
-                                + value.f1.getCategory()
+                                + value.f1.category()
                                 + ".\nIl nome dell'esercizio commerciale è: "
-                                + value.f1.getName());
+                                + value.f1.name());
                     ChatResponse aiResponse = model.chat(systemMessage, userMessage);
-                    return new Tuple3<>(value.f0, value.f1.getId(), aiResponse.aiMessage().text());
+                    return new Tuple3<>(value.f0, value.f1, aiResponse.aiMessage().text());
                   }
                 }
               } catch (SQLException e) {
