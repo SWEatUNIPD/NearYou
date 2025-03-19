@@ -1,4 +1,4 @@
-package io.github.sweatunipd;
+ package io.github.sweatunipd;
 
 import io.github.sweatunipd.entity.GPSData;
 import io.github.sweatunipd.entity.PointOfInterest;

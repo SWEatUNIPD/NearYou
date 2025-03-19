@@ -220,7 +220,6 @@
                     <target>${target.java.version}</target>
                 </configuration>
             </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
@@ -282,6 +281,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -294,7 +294,7 @@
                     </execution>
                     <execution>
                         <id>report</id>
-                        <phase>prepare-package</phase>
+                        <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
