@@ -25,7 +25,7 @@ public class AdvertisementSerializationSchema
             node.put("adv", adv.f1);
             return MAPPER.writeValueAsBytes(node);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to serialize Tuple2 to JSON", e);
+            throw new RuntimeException("Failed to serialize Tuple3 to JSON", e);
         }
     }
 }

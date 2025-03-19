@@ -39,7 +39,7 @@ public class AdvertisementSerializationSchemaTest {
             serializer.serialize(adv);
         });
 
-        String expectedMessage = "Failed to serialize Tuple2 to JSON";
+        String expectedMessage = "Failed to serialize Tuple3 to JSON";
         String actualMessage = exception.getMessage();
 
         assertTrue(actualMessage.contains(expectedMessage));
