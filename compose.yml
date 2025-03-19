@@ -30,8 +30,15 @@ services:
     environment:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=adminadminadmin
+      - POSTGRES_DB=admin
     volumes:
       - ./create.sql:/docker-entrypoint-initdb.d/create.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "admin", "-U", "admin"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
 
   grafana:
     image: grafana/grafana
@@ -40,3 +47,36 @@ services:
       - 3000:3000
     volumes:
       - ./data/grafana/grafana.db:/var/lib/grafana/grafana.db
+
+  jobmanager:
+    image: flink:1.20.1-scala_2.12-java17
+    depends_on:
+      kafka:
+        condition: service_started
+      postgis:
+          condition: service_healthy
+    ports:
+      - 8081:8081
+    command: standalone-job --job-classname io.github.sweatunipd.DataStreamJob
+    volumes:
+      - ./job/target/NearYou-1.0.jar:/opt/flink/usrlib/NearYou-1.0.jar
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        parallelism.default: 2 
+
+  taskmanager:
+    image: flink:1.20.1-scala_2.12-java17
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    scale: 1
+    volumes:
+      - ./job/target/NearYou-1.0.jar:/opt/flink/usrlib/NearYou-1.0.jar
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 2
+        parallelism.default: 2
