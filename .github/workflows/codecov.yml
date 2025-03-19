@@ -1,4 +1,4 @@
-name: Workflow for Codecov example-java-maven
+name: Codecov Coverage
 on: [push, pull_request]
 jobs:
   run:
@@ -12,9 +12,14 @@ jobs:
           distribution: "adopt"
           java-version: 23
       - name: Install dependencies
-        run: mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
+        run: |
+          cd job
+          mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
       - name: Run tests and collect coverage
-        run: mvn -B test
+        run: |
+          ls
+          cd job
+          mvn -B test
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         with:
