@@ -41,7 +41,7 @@ services:
       start_period: 80s
 
   grafana:
-    image: grafana/grafana
+    image: rmilan/grafana-rm
     restart: always
     ports:
       - 3000:3000
