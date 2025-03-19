@@ -17,7 +17,6 @@ jobs:
           mvn install -DskipTests=true -Dmaven.javadoc.skip=true -B -V
       - name: Run tests and collect coverage
         run: |
-          ls
           cd job
           mvn -B test
       - name: Upload coverage reports to Codecov
@@ -25,3 +24,4 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: klamerja/SensorFlowUNIPD
+          working-directory: job
