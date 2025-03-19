@@ -63,14 +63,6 @@ services:
     environment:
       - |
         FLINK_PROPERTIES=
-        kafka.bootstrap.server: kafka:9092
-        kafka.input.topic: gps-data
-        kafka.output.topic: adv-data
-        postgres.jdbc.connection.url: jdbc:postgresql://postgis:5432/admin
-        postgres.username: admin
-        postgres.password: adminadminadmin
-        langchain.openai.model.name: gpt-4o-mini
-        langchain.openai.api.key: demo
         jobmanager.rpc.address: jobmanager
         parallelism.default: 2 
 

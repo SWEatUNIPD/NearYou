@@ -101,7 +101,7 @@ INSERT INTO points_of_interest (latitude, longitude, vat, name, category, offer)
 VALUES (78.5, 78.5, 'IT101010101', 'Pizza', 'Cibo e bevande', 'Pizza');
 
 INSERT INTO poi_hours (latitude_poi, longitude_poi, day_of_week, open_at, close_at)
-VALUES (78.5, 78.5, 3, '00:00:00+00', '23:59:59+00');
+VALUES (78.5, 78.5, 2, '00:00:00+00', '23:59:59+00');
 
 INSERT INTO rents (id, bike_id, user_email, is_closed)
 VALUES (1, 1, '1', 'f');

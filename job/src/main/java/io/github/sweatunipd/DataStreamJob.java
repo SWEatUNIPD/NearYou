@@ -13,7 +13,6 @@ import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.configuration.GlobalConfiguration;
 import org.apache.flink.configuration.RestartStrategyOptions;
 import org.apache.flink.connector.base.DeliveryGuarantee;
 import org.apache.flink.connector.jdbc.JdbcConnectionOptions;
@@ -30,12 +29,14 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * @author SWEatUNIPD
- */
 public class DataStreamJob {
+  public static final Logger LOG = LoggerFactory.getLogger(DataStreamJob.class);
+
   public static void main(String[] args) throws Exception {
+    LOG.info("Job starting - NearYou");
     // Execution Environment Configuration
     Configuration configuration = new Configuration();
     configuration.set(RestartStrategyOptions.RESTART_STRATEGY, "fixed-delay");
@@ -47,19 +48,12 @@ public class DataStreamJob {
     final StreamExecutionEnvironment env =
         StreamExecutionEnvironment.getExecutionEnvironment(configuration);
 
-    Configuration config = GlobalConfiguration.loadConfiguration();
-    env.getConfig().setGlobalJobParameters(config);
-
     // Kafka Admin
     Properties adminProps = new Properties();
-    adminProps.put(
-        AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,
-        config.getString("kafka.bootstrap.server", "localhost:9094"));
+    adminProps.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty("kafka.bootstrap.servers", "kafka:9092"));
     try (Admin admin = Admin.create(adminProps)) {
-      NewTopic inputTopicConfig =
-          new NewTopic(config.getString("kafka.input.topic", "gps-data"), 1, (short) 1);
-      NewTopic outputTopicConfig =
-          new NewTopic(config.getString("kafka.output.topic", "adv-data"), 1, (short) 1);
+      NewTopic inputTopicConfig = new NewTopic("gps-data", 1, (short) 1);
+      NewTopic outputTopicConfig = new NewTopic("adv-data", 1, (short) 1);
       admin.createTopics(Arrays.asList(inputTopicConfig, outputTopicConfig));
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -69,9 +63,9 @@ public class DataStreamJob {
     Properties props = new Properties();
     KafkaSource<GPSData> source =
         KafkaSource.<GPSData>builder()
-            .setBootstrapServers(config.getString("kafka.bootstrap.server", "localhost:9094"))
+            .setBootstrapServers(System.getProperty("kafka.bootstrap.servers", "kafka:9092"))
             .setProperties(props)
-            .setTopics(config.getString("kafka.input.topic", "gps-data"))
+            .setTopics("gps-data")
             .setGroupId(UUID.randomUUID().toString())
             .setStartingOffsets(OffsetsInitializer.latest())
             .setValueOnlyDeserializer(new GPSDataDeserializationSchema())
@@ -84,12 +78,10 @@ public class DataStreamJob {
     // JDBC Connection Option
     JdbcConnectionOptions jdbcConnectionOptions =
         new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
-            .withUrl(
-                config.getString(
-                    "postgres.jdbc.connection.url", "jdbc:postgresql://localhost:5432/admin"))
+            .withUrl(System.getProperty("jdbc.url", "jdbc:postgresql://postgis:5432/admin"))
             .withDriverName("org.postgresql.Driver")
-            .withUsername(config.getString("postgres.username", "admin"))
-            .withPassword(config.getString("postgres.password", "adminadminadmin"))
+            .withUsername("admin") // DB username
+            .withPassword("adminadminadmin") // DB password
             .build();
 
     // Sink of the transmitted positions in DB
@@ -131,10 +123,10 @@ public class DataStreamJob {
     // Configuration of the Kafka Sink
     KafkaSink<Tuple3<GPSData, PointOfInterest, String>> kafkaSink =
         KafkaSink.<Tuple3<GPSData, PointOfInterest, String>>builder()
-            .setBootstrapServers(config.getString("kafka.bootstrap.server", "localhost:9094"))
+            .setBootstrapServers(System.getProperty("kafka.bootstrap.servers", "kafka:9092"))
             .setRecordSerializer(
                 KafkaRecordSerializationSchema.builder()
-                    .setTopic(config.getString("kafka.output.topic", "adv-data"))
+                    .setTopic("adv-data")
                     .setValueSerializationSchema(new AdvertisementSerializationSchema())
                     .build())
             .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
@@ -146,12 +138,12 @@ public class DataStreamJob {
     // Sink of the generated advertisement in DB
     generatedAdvertisement.addSink(
         JdbcSink.sink(
-            "INSERT INTO advertisements(latitude_poi, longitude_poi, rent_id, time_stamp_position, adv) VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO advertisements(latitude_poi, longitude_poi, position_time_stamp, position_rent_id, adv) VALUES (?, ?, ?, ?, ?)",
             (preparedStatement, advertisement) -> {
               preparedStatement.setFloat(1, advertisement.f1.latitude());
               preparedStatement.setFloat(2, advertisement.f1.longitude());
-              preparedStatement.setInt(3, advertisement.f0.getRentId());
-              preparedStatement.setTimestamp(4, advertisement.f0.getTimestamp());
+              preparedStatement.setTimestamp(3, advertisement.f0.getTimestamp());
+              preparedStatement.setInt(4, advertisement.f0.getRentId());
               preparedStatement.setString(5, advertisement.f2);
             },
             JdbcExecutionOptions.builder()

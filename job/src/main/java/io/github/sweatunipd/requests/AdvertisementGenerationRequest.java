@@ -20,11 +20,9 @@ import org.apache.flink.streaming.api.functions.async.RichAsyncFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author SWEatUNIPD
- */
 public class AdvertisementGenerationRequest
-    extends RichAsyncFunction<Tuple2<GPSData, PointOfInterest>, Tuple3<GPSData, PointOfInterest, String>> {
+    extends RichAsyncFunction<
+        Tuple2<GPSData, PointOfInterest>, Tuple3<GPSData, PointOfInterest, String>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(AdvertisementGenerationRequest.class);
   private transient ChatLanguageModel model;
@@ -60,9 +58,12 @@ public class AdvertisementGenerationRequest
   }
 
   /**
-   * Method that generates the advertisement with the LLM
+   * Method that triggers the async operation for each element of the stream
    *
-   * TODO: fare JavaDoc
+   * @param value tuple containing the position emitted by the user and the interested point of
+   *     interest
+   * @param resultFuture Future of the result of the processing; tuple of three element that
+   *     includes the position, the interested POI and the advertisement string/text
    */
   @Override
   public void asyncInvoke(
@@ -102,9 +103,9 @@ public class AdvertisementGenerationRequest
             result -> {
               if (result != null) {
                 resultFuture.complete(Collections.singleton(result));
-              }else{
+              } else {
                 resultFuture.complete(Collections.emptySet());
               }
             });
-    }
+  }
 }

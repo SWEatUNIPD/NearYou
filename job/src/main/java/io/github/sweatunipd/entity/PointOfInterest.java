@@ -2,9 +2,6 @@ package io.github.sweatunipd.entity;
 
 import java.util.Objects;
 
-/**
- * @author SWEatUNIPD
- */
 public record PointOfInterest(
     float latitude,
     float longitude,

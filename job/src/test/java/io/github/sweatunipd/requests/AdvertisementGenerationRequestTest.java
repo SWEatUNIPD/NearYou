@@ -1,4 +1,4 @@
-package io.github.sweatunipd.requests.requests;
+package io.github.sweatunipd.requests;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -13,7 +13,7 @@ import dev.langchain4j.model.openai.OpenAiChatModelName;
 import io.github.sweatunipd.database.DataSourceSingleton;
 import io.github.sweatunipd.entity.GPSData;
 import io.github.sweatunipd.entity.PointOfInterest;
-import io.github.sweatunipd.requests.AdvertisementGenerationRequest;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -35,9 +35,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
 
-/**
- * @author SWEatUNIPD
- */
 @ExtendWith(MockitoExtension.class)
 public class AdvertisementGenerationRequestTest {
   @Mock private Connection connection;
