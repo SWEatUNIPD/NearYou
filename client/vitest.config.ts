@@ -15,7 +15,6 @@ export default defineConfig({
             exclude: [
                 'src/config/**',
                 'src/App.ts',
-                'src/KafkaManager.ts',
             ],
 
             thresholds: {
