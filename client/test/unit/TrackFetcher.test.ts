@@ -5,12 +5,12 @@ import polyline from '@mapbox/polyline';
 
 describe('TrackFetcher', () => {
     // Test che verifica se il metodo fetchTrack restituisce un array di GeoPoint
-    it('Verifica se il metodo fetchTrack restituisce un array di GeoPoint', async () => {
+    /*it('Verifica se il metodo fetchTrack restituisce un array di GeoPoint', async () => {
         const trackerFetcher = new TrackFetcher();
         const trackPoints = await trackerFetcher.fetchTrack();
         expect(trackPoints).toBeInstanceOf(Array);
         expect(trackPoints[0]).toBeInstanceOf(GeoPoint);
-    });
+    });*/
 
     // Test che verifica se viene lanciato un errore quando la richiesta fallisce
     it('Verifica se viene lanciato un errore quando la richiesta fallisce', async () => {

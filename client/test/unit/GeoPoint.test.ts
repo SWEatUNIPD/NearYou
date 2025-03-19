@@ -1,16 +1,25 @@
 import {GeoPoint} from '../../src/GeoPoint';
 
 describe("Geopoint", () => {
-    // Testo il costruttore di GeoPoint ed i metodi getter: getLatitude e getLongitude
-    it("Test del costruttore e dei metodi getter", () =>{
-        // Crea un nuovo GeoPoint con latitudine e longitudine specificate
-        const geoPoint = new GeoPoint(40.7128, -74.0060);
+    // Testo il costruttore di GeoPoint
+    it("Test del costruttore", () => {
+        // Crea un nuovo GeoPoint con latitudine e longitudine specificate (coordinate di Padova)
+        const geoPoint = new GeoPoint(45.4064, 11.8768);
+
+        // Verifica che l'oggetto GeoPoint sia stato creato correttamente
+        expect(geoPoint).toBeInstanceOf(GeoPoint);
+    });
+
+    // Testo i metodi getter: getLatitude e getLongitude
+    it("Test dei metodi getter", () => {
+        // Crea un nuovo GeoPoint con latitudine e longitudine specificate (coordinate di Padova)
+        const geoPoint = new GeoPoint(45.4064, 11.8768);
 
         // Verifica che la latitudine sia corretta
-        expect(geoPoint.getLatitude()).toBe(40.7128);
+        expect(geoPoint.getLatitude()).toBe(45.4064);
 
         // Verifica che la longitudine sia corretta
-        expect(geoPoint.getLongitude()).toBe(-74.0060);
+        expect(geoPoint.getLongitude()).toBe(11.8768);
     });
 
     // Testo il metodo radiusKmToGeoPoint (radiusKmToGeoPoint)
@@ -56,18 +65,18 @@ describe("Geopoint", () => {
 
     // Testo il metodo generateRandomPoint (generateRandomPoint)
     it("Test del metodo generateRandomPoint", () => {
-        const geoPoint = new GeoPoint(40.7128, -74.0060);
+        const geoPoint = new GeoPoint(45.4064, 11.8768); // Coordinate di Padova
         const radiusGeoPoint = new GeoPoint(0.9, 0.9);
         
         // Genera un punto casuale all'interno di un raggio specificato
         const randomPoint = geoPoint.generateRandomPoint(radiusGeoPoint);
 
         // Verifica che la latitudine del punto casuale sia all'interno del range previsto
-        expect(randomPoint.getLatitude()).toBeGreaterThanOrEqual(39.8128);
-        expect(randomPoint.getLatitude()).toBeLessThanOrEqual(41.6128);
+        expect(randomPoint.getLatitude()).toBeGreaterThanOrEqual(44.5064);
+        expect(randomPoint.getLatitude()).toBeLessThanOrEqual(46.3064);
 
         // Verifica che la longitudine del punto casuale sia all'interno del range previsto
-        expect(randomPoint.getLongitude()).toBeGreaterThanOrEqual(-74.9060);
-        expect(randomPoint.getLongitude()).toBeLessThanOrEqual(-73.1060);
+        expect(randomPoint.getLongitude()).toBeGreaterThanOrEqual(10.9768);
+        expect(randomPoint.getLongitude()).toBeLessThanOrEqual(12.7768);
     });
 });
