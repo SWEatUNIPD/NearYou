@@ -1,4 +1,4 @@
- package io.github.sweatunipd;
+package io.github.sweatunipd;
 
 import io.github.sweatunipd.entity.GPSData;
 import io.github.sweatunipd.entity.PointOfInterest;
@@ -48,41 +48,18 @@ public class DataStreamJob {
     final StreamExecutionEnvironment env =
         StreamExecutionEnvironment.getExecutionEnvironment(configuration);
 
-    // Kafka Admin
-    Properties adminProps = new Properties();
-    adminProps.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, System.getProperty("kafka.bootstrap.servers", "kafka:9092"));
-    try (Admin admin = Admin.create(adminProps)) {
-      NewTopic inputTopicConfig = new NewTopic("gps-data", 1, (short) 1);
-      NewTopic outputTopicConfig = new NewTopic("adv-data", 1, (short) 1);
-      admin.createTopics(Arrays.asList(inputTopicConfig, outputTopicConfig));
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    // Creation of Kafka topics "gps-data" and "adv-data"
+    createKafkaTopics();
 
     // Kafka Source Configuration
-    Properties props = new Properties();
-    KafkaSource<GPSData> source =
-        KafkaSource.<GPSData>builder()
-            .setBootstrapServers(System.getProperty("kafka.bootstrap.servers", "kafka:9092"))
-            .setProperties(props)
-            .setTopics("gps-data")
-            .setGroupId(UUID.randomUUID().toString())
-            .setStartingOffsets(OffsetsInitializer.latest())
-            .setValueOnlyDeserializer(new GPSDataDeserializationSchema())
-            .build();
+    KafkaSource<GPSData> source = getGPSDataKafkaSource();
 
     // Kafka Entering Queue Data stream
     DataStreamSource<GPSData> kafka =
         env.fromSource(source, WatermarkStrategy.noWatermarks(), "GPS Data");
 
     // JDBC Connection Option
-    JdbcConnectionOptions jdbcConnectionOptions =
-        new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
-            .withUrl(System.getProperty("jdbc.url", "jdbc:postgresql://postgis:5432/admin"))
-            .withDriverName("org.postgresql.Driver")
-            .withUsername("admin") // DB username
-            .withPassword("adminadminadmin") // DB password
-            .build();
+    JdbcConnectionOptions jdbcConnectionOptions = getJdbcConnectionOptions();
 
     // Sink of the transmitted positions in DB
     kafka
@@ -121,16 +98,7 @@ public class DataStreamJob {
             1000);
 
     // Configuration of the Kafka Sink
-    KafkaSink<Tuple3<GPSData, PointOfInterest, String>> kafkaSink =
-        KafkaSink.<Tuple3<GPSData, PointOfInterest, String>>builder()
-            .setBootstrapServers(System.getProperty("kafka.bootstrap.servers", "kafka:9092"))
-            .setRecordSerializer(
-                KafkaRecordSerializationSchema.builder()
-                    .setTopic("adv-data")
-                    .setValueSerializationSchema(new AdvertisementSerializationSchema())
-                    .build())
-            .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
-            .build();
+    KafkaSink<Tuple3<GPSData, PointOfInterest, String>> kafkaSink = getAdvDataKafkaSink();
 
     // Sink of the successfully generated advertisements to the users via Kafka exiting queue
     generatedAdvertisement.filter(adv -> !adv.f2.isEmpty()).sinkTo(kafkaSink);
@@ -155,5 +123,59 @@ public class DataStreamJob {
 
     // Flink Job Execution
     env.execute("NearYou - Smart Custom Advertising Platform");
+  }
+
+  private static void createKafkaTopics() {
+    Properties adminProps = new Properties();
+    adminProps.put(
+        AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG,
+        System.getProperty("kafka.bootstrap.servers", "kafka:9092"));
+    try (Admin admin = Admin.create(adminProps)) {
+      Set<String> kafkaExistingTopics = admin.listTopics().names().get();
+      NewTopic inputTopicConfig = new NewTopic("gps-data", 1, (short) 1);
+      NewTopic outputTopicConfig = new NewTopic("adv-data", 1, (short) 1);
+      if (!kafkaExistingTopics.contains(inputTopicConfig.name())) {
+        admin.createTopics(Collections.singleton(inputTopicConfig));
+      }
+      if (!kafkaExistingTopics.contains(outputTopicConfig.name())) {
+        admin.createTopics(Collections.singleton(outputTopicConfig));
+      }
+    } catch (Exception e) {
+      LOG.error(e.getMessage(), e); // TODO: FailSafe implementation
+    }
+  }
+
+  private static KafkaSource<GPSData> getGPSDataKafkaSource() {
+    Properties props = new Properties();
+    props.put("auto.offset.reset", "earliest");
+    return KafkaSource.<GPSData>builder()
+        .setBootstrapServers(System.getProperty("kafka.bootstrap.servers", "kafka:9092"))
+        .setProperties(props)
+        .setTopics("gps-data")
+        .setGroupId("nearyou-group")
+        .setStartingOffsets(OffsetsInitializer.latest())
+        .setValueOnlyDeserializer(new GPSDataDeserializationSchema())
+        .build();
+  }
+
+  private static JdbcConnectionOptions getJdbcConnectionOptions() {
+    return new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
+        .withUrl(System.getProperty("jdbc.url", "jdbc:postgresql://postgis:5432/admin"))
+        .withDriverName("org.postgresql.Driver")
+        .withUsername("admin") // DB username
+        .withPassword("adminadminadmin") // DB password
+        .build();
+  }
+
+  private static KafkaSink<Tuple3<GPSData, PointOfInterest, String>> getAdvDataKafkaSink() {
+    return KafkaSink.<Tuple3<GPSData, PointOfInterest, String>>builder()
+        .setBootstrapServers(System.getProperty("kafka.bootstrap.servers", "kafka:9092"))
+        .setRecordSerializer(
+            KafkaRecordSerializationSchema.builder()
+                .setTopic("adv-data")
+                .setValueSerializationSchema(new AdvertisementSerializationSchema())
+                .build())
+        .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+        .build();
   }
 }
