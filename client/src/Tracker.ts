@@ -1,15 +1,13 @@
 import { env } from './config/EnvManager';
 import { TrackFetcher } from './TrackFetcher';
 import { GeoPoint } from './GeoPoint';
-import { TrackerSubject } from './TrackerSubject';
 import { KafkaManager } from './KafkaManager';
 import { Consumer, EachMessagePayload, Producer } from 'kafkajs';
 import { inject, injectable } from 'inversify';
 import { TYPES } from './config/InversifyType';
 
 @injectable()
-// Classe che rappresenta un tracker che invia dati GPS a un broker Kafka
-export class Tracker extends TrackerSubject {
+export class Tracker {
     private isAvailable = true;
     private consumer!: Consumer;
 
@@ -17,11 +15,8 @@ export class Tracker extends TrackerSubject {
         private id: string,
         @inject(TYPES.KafkaManager)
         private kafkaManager: KafkaManager
-    ) {
-        super();
-    }
+    ) {}
 
-    // Metodo per attivare il tracker
     async activate(): Promise<void> {
         this.isAvailable = false;
 
@@ -34,32 +29,10 @@ export class Tracker extends TrackerSubject {
         } catch (err) {
             console.error(err);
         }
-
-        this.isAvailable = true;
-    }
-
-    // Metodo privato per ascoltare i messaggi di advertising
-    /*private async listenToAdv(): Promise<void> {
-        const eachMessageHandler = async (payload: EachMessagePayload) => {
-            //const { topic, partition, message } = payload;
-            //console.log({
-            //    topic,
-            //    partition,
-            //    key: message.key?.toString(),
-            //    value: message.value?.toString(),
-            //});
-        };
-
-        try {
-            this.consumer = await this.kafkaManager.initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
-        } catch (err) {
-            console.error(`Error caught trying to initialize and connect the consumer.\n${err}`);
-        }
-    }*/
-    
+    }    
 
     private async listenToAdv(): Promise<void> {
-        const eachMessageHandler = async (payload: EachMessagePayload) => {};
+        const eachMessageHandler = async (payload: EachMessagePayload) => { payload };
     
         try {
             this.consumer = await this.kafkaManager.initAndConnectConsumer('adv-data', 'trackers', eachMessageHandler);
@@ -68,7 +41,6 @@ export class Tracker extends TrackerSubject {
         }
     }
 
-    // Metodo privato per muovere il tracker lungo i punti della traccia
     private async move(trackPoints: GeoPoint[]): Promise<void> {
         try {
             const producer: Producer = await this.kafkaManager.initAndConnectProducer();
@@ -82,8 +54,8 @@ export class Tracker extends TrackerSubject {
                         await this.kafkaManager.disconnectConsumer(this.consumer);
                     }
 
+                    this.isAvailable = true;
                     clearInterval(intervalId);
-                    await this.notifyTrackEnded(this.id);
                 }
                 
                 let trackerId: string = this.id;
@@ -104,15 +76,7 @@ export class Tracker extends TrackerSubject {
         }
     }
 
-    // getId(): string {
-    //     return this.id;
-    // }
-
     getIsAvailable(): boolean {
         return this.isAvailable;
     }
-
-    // setIsAvailable(value: boolean): void {
-    //     this.isAvailable = value;
-    // }
 }

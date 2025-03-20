@@ -2,9 +2,7 @@ import { env } from './config/EnvManager';
 import polyline from "@mapbox/polyline";
 import { GeoPoint } from "./GeoPoint";
 
-// Classe che si occupa di recuperare i punti di una traccia geografica
 export class TrackFetcher {
-    // Metodo che recupera i punti di una traccia geografica
     async fetchTrack(): Promise<GeoPoint[]> {
         try {
             const response = await this.request();
@@ -36,7 +34,6 @@ export class TrackFetcher {
         }
     }
 
-    // Metodo privato che effettua una richiesta per ottenere i dati della traccia
     private async request(): Promise<Response> {
         try {
             const radiusGeoPoint = GeoPoint.radiusKmToGeoPoint(Number(env.MAP_RADIUS_KM));

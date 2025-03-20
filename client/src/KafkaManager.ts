@@ -2,13 +2,11 @@ import { injectable } from 'inversify';
 import { Consumer, ConsumerConfig, EachMessagePayload, Kafka, Message, Producer } from "kafkajs";
 
 @injectable()
-// Classe che gestisce la connessione e le operazioni con Kafka
 export class KafkaManager {
     constructor(
         private kafka: Kafka
     ) {}
 
-    // Metodo per inizializzare e connettere un produttore Kafka
     async initAndConnectProducer(): Promise<Producer> {
         try {
             let producer = this.kafka.producer();
@@ -21,7 +19,6 @@ export class KafkaManager {
         }
     }
 
-    // Metodo per disconnettere un produttore Kafka
     async disconnectProducer(producer: Producer): Promise<void> {
         try {
             await producer.disconnect();
@@ -32,7 +29,6 @@ export class KafkaManager {
         }
     }
 
-    // Metodo per inviare un messaggio tramite un produttore Kafka
     async sendMessage(producer: Producer, topic: string, data: string): Promise<void> {
         try {
             const msg: Message = {
@@ -49,7 +45,6 @@ export class KafkaManager {
         }
     }
 
-    // Metodo per inizializzare e connettere un consumatore Kafka
     async initAndConnectConsumer(topic: string, groupId: string, eachMessageHandler: (payload: EachMessagePayload) => Promise<void>): Promise<Consumer> {
         try {
             const consumerConfig: ConsumerConfig = {
@@ -75,7 +70,6 @@ export class KafkaManager {
         }
     }
 
-    // Metodo per disconnettere un consumatore Kafka
     async disconnectConsumer(consumer: Consumer): Promise<void> {
         try {
             await consumer.disconnect();

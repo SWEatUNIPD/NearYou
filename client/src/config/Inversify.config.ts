@@ -6,7 +6,6 @@ import { env } from './EnvManager';
 import { KafkaManager } from '../KafkaManager';
 import { Kafka, KafkaConfig } from 'kafkajs';
 
-// Crea un nuovo contenitore Inversify per la gestione delle dipendenze
 export const container = new Container();
 
 container
@@ -34,5 +33,4 @@ container
         return trackerMap;
     });
 
-// Configura il binding per Simulator
 container.bind(Simulator).toSelf().inSingletonScope();
