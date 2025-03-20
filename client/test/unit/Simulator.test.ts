@@ -4,7 +4,7 @@ import { Tracker } from '../../src/Tracker';
 import { KafkaManager } from '../../src/KafkaManager';
 
 describe('Simulator', () => {
-    let trackerMap: Map<string, Tracker>;
+    let trackerList: Tracker[];
     let simulator: Simulator;
 
     // Definisci un mock per KafkaManager
@@ -17,15 +17,14 @@ describe('Simulator', () => {
     } as unknown as KafkaManager;
 
     beforeEach(() => {
-        // Inizializza una mappa di tracker fittizi
-        trackerMap = new Map<string, Tracker>();
-        const tracker1 = new Tracker('tracker-1', kafkaManagerMock);
-        const tracker2 = new Tracker('tracker-2', kafkaManagerMock);
-        trackerMap.set('tracker-1', tracker1);
-        trackerMap.set('tracker-2', tracker2);
+        // Inizializza una lista di tracker fittizi
+        trackerList = [
+            new Tracker('tracker-1', kafkaManagerMock),
+            new Tracker('tracker-2', kafkaManagerMock)
+        ];
 
-        // Crea un'istanza di Simulator con la mappa di tracker
-        simulator = new Simulator(trackerMap);
+        // Crea un'istanza di Simulator con la lista di tracker
+        simulator = new Simulator(trackerList);
 
         // Mock di env.INIT_RENT_COUNT
         vi.mock('../../src/config/EnvManager', () => ({
@@ -95,28 +94,5 @@ describe('Simulator', () => {
 
         // Ripristiniamo i timer reali
         vi.useRealTimers();
-    });
-
-    // Test di trackEndedUpdate
-    it('dovrebbe gestire correttamente l\'aggiornamento della fine di un percorso', async () => {
-        // Simula l'aggiornamento della fine di un percorso
-        await simulator.trackEndedUpdate('tracker-1');
-
-        // Verifica che non vengano lanciati errori
-        expect(true).toBe(true); // Placeholder per la verifica
-    });
-
-    // Test di trackEndedUpdate che lancia l'eccezione
-    it('dovrebbe gestire correttamente un errore durante l\'aggiornamento della fine di un percorso', async () => {
-        // Definisci un'interfaccia per i metodi privati
-        interface SimulatorPrivateMethods {
-            trackEndedUpdate: (id: string) => Promise<void>;
-        }
-
-        // Mock di un comportamento che genera un errore
-        vi.spyOn(simulator as unknown as SimulatorPrivateMethods, 'trackEndedUpdate').mockRejectedValue(new Error('Errore durante l\'aggiornamento'));
-
-        // Verifica che l'errore venga propagato
-        await expect(simulator.trackEndedUpdate('tracker-1')).rejects.toThrow('Errore durante l\'aggiornamento');
     });
 });
