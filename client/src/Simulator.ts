@@ -5,8 +5,8 @@ import { env } from './config/EnvManager';
 
 export class Simulator {
     constructor(
-        @inject(TYPES.TrackerMap)
-        private trackerMap: Map<string, Tracker>
+        @inject(TYPES.TrackerList)
+        private trackerList: Tracker[]
     ) {}
 
     async startSimulation(): Promise<void> {
@@ -24,7 +24,7 @@ export class Simulator {
 
     private async startRent(): Promise<void> {
         let tracker: Tracker | null = null;
-        for (const trk of this.trackerMap.values()) {
+        for (const trk of this.trackerList) {
             if (trk.getIsAvailable()) {
                 tracker = trk;
                 break;

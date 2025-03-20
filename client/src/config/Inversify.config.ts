@@ -21,16 +21,16 @@ container
     .inSingletonScope();
 
 container
-    .bind<Map<string, Tracker>>(TYPES.TrackerMap)
-    .toDynamicValue((context: ResolutionContext): Map<string, Tracker> => {
+    .bind<Tracker[]>(TYPES.TrackerList)
+    .toDynamicValue((context: ResolutionContext): Tracker[] => {
         const kafkaManager: KafkaManager = context.get<KafkaManager>(TYPES.KafkaManager);
-        let trackerMap = new Map<string, Tracker>();
+        let trackerList: Tracker[] = [];
         for (let i = 1; i <= Number(env.INIT_TRACKER_COUNT); i++) {
             const id = i.toString();
             const tracker: Tracker = new Tracker(id, kafkaManager);
-            trackerMap.set(id, tracker);
+            trackerList.push(tracker);
         }
-        return trackerMap;
+        return trackerList;
     });
 
 container.bind(Simulator).toSelf().inSingletonScope();
