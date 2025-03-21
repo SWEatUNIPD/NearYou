@@ -1,61 +1,63 @@
-import { env } from './EnvManager';
+import { env } from './config/EnvManager';
 import polyline from "@mapbox/polyline";
 import { GeoPoint } from "./GeoPoint";
 
 export class TrackFetcher {
-    private mapCenter: GeoPoint;
-    private mapRadiusKm: number;
-    private maxNumTrackPoints: number;
-
-    constructor() {
-        this.mapCenter = new GeoPoint(Number(env.MAP_CENTER_LAT), Number(env.MAP_CENTER_LON));
-        this.mapRadiusKm = Number(env.MAP_RADIUS_KM);
-        this.maxNumTrackPoints = Number(env.MAX_NUM_TRACK_POINTS);
-    }
-
     async fetchTrack(): Promise<GeoPoint[]> {
-        const response = await this.request();
+        try {
+            const response = await this.request();
 
-        const routeData = await response.json();
-        const encodedPolyline = routeData.routes[0].geometry;
+            const routeData = await response.json();
+            const encodedPolyline = routeData.routes[0].geometry;
 
-        const trackPoints = polyline.decode(encodedPolyline);
+            const trackPoints = polyline.decode(encodedPolyline);
 
-        let sampledPoints;
-        if (this.maxNumTrackPoints < trackPoints.length) {
-            const step = Math.floor(trackPoints.length / this.maxNumTrackPoints);
-            sampledPoints = trackPoints
-                .filter((_, index) => index % step == 0)
-                .slice(0, this.maxNumTrackPoints);
-        } else {
-            sampledPoints = trackPoints;
-        }
-
-        return sampledPoints.map(([latitude, longitude]): GeoPoint => {
-            {
-                return new GeoPoint(latitude, longitude);
+            let sampledPoints;
+            const maxNumTrackPoints = Number(env.MAX_NUM_TRACK_POINTS);
+            if (maxNumTrackPoints < trackPoints.length) {
+                const step = Math.floor(trackPoints.length / maxNumTrackPoints);
+                sampledPoints = trackPoints
+                    .filter((_, index) => index % step == 0)
+                    .slice(0, maxNumTrackPoints);
+            } else {
+                sampledPoints = trackPoints;
             }
-        });
+
+            return sampledPoints.map(([latitude, longitude]): GeoPoint => {
+                {
+                    return new GeoPoint(latitude, longitude);
+                }
+            });
+        } catch (err) {
+            console.error(`Error caught trying to fetch a track.`);
+            throw err;
+        }
     }
 
     private async request(): Promise<Response> {
-        const radiusGeoPoint = GeoPoint.radiusKmToGeoPoint(this.mapRadiusKm);
-        const startGeoPoint = this.mapCenter.generateRandomPoint(radiusGeoPoint);
-        const destGeoPoint = this.mapCenter.generateRandomPoint(radiusGeoPoint);
-        
-        const osrmUrl = 'http://router.project-osrm.org/route/v1/cycling';
-        const requestUrl = `${osrmUrl}/${startGeoPoint.getLongitude()},${startGeoPoint.getLatitude()};${destGeoPoint.getLongitude()},${destGeoPoint.getLatitude()}`;
+        try {
+            const radiusGeoPoint = GeoPoint.radiusKmToGeoPoint(Number(env.MAP_RADIUS_KM));
+            const mapCenter = new GeoPoint(Number(env.MAP_CENTER_LAT), Number(env.MAP_CENTER_LON));
+            const startGeoPoint = mapCenter.generateRandomPoint(radiusGeoPoint);
+            const destGeoPoint = mapCenter.generateRandomPoint(radiusGeoPoint);
 
-        const response = await fetch(
-            requestUrl + '?overview=full&geometries=polyline'
-        );
+            const osrmUrl = 'http://router.project-osrm.org/route/v1/cycling';
+            const requestUrl = `${osrmUrl}/${startGeoPoint.getLongitude()},${startGeoPoint.getLatitude()};${destGeoPoint.getLongitude()},${destGeoPoint.getLatitude()}`;
 
-        if (!response.ok) {
-            throw new Error(
-                `Track request error: ${response.status} - ${await response.text()}`
+            const response = await fetch(
+                requestUrl + '?overview=full&geometries=polyline'
             );
-        }
 
-        return response;
+            if (!response.ok) {
+                throw new Error(
+                    `Track request error: ${response.status} - ${await response.text()}`
+                );
+            }
+
+            return response;
+        } catch (err) {
+            console.error(`Error caught trying to generate the OSRM request.`);
+            throw err;
+        }
     }
 }

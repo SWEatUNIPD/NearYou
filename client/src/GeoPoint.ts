@@ -1,11 +1,8 @@
 export class GeoPoint {
-    private latitude: number;
-    private longitude: number;
-
-    constructor(latitude: number, longitude: number) {
-        this.latitude = latitude;
-        this.longitude = longitude;
-    }
+    constructor(
+        private latitude: number,
+        private longitude: number
+    ) {}
 
     static radiusKmToGeoPoint(radiusKm: number): GeoPoint {
         if (radiusKm > 10000) {

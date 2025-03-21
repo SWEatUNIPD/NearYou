@@ -1,52 +1,59 @@
-import { v4 as uuidv4 } from 'uuid';
-import { SimulatorObserver } from './SimulatorObserver';
-import { Rent } from './Rent';
+import { inject } from 'inversify';
+import { TYPES } from './config/InversifyType';
 import { Tracker } from './Tracker';
+import { env } from './config/EnvManager';
 
-export class Simulator implements SimulatorObserver {
-    private rentList: Rent[];
+export class Simulator {
+    constructor(
+        @inject(TYPES.TrackerList)
+        private trackerList: Tracker[]
+    ) {}
 
-    constructor(rentList: Rent[]) {
-        this.rentList = rentList;
-    }
-
-    startSimulation(): void {
-        this.rentList.forEach(rent => {
-            rent.register(this);
-            rent.activate();
-        });
+    async startSimulation(): Promise<void> {
+        for (let i = 0; i < Number(env.INIT_RENT_COUNT); i++) {
+            try {
+                await this.startRent();
+            } catch (err) {
+                console.error(`Error caught trying to start a new rent.\n${err}`);
+                return;
+            }
+        }
 
         this.startRentsInRuntime();
     }
 
+    private async startRent(): Promise<void> {
+        let tracker: Tracker | null = null;
+        for (const trk of this.trackerList) {
+            if (trk.getIsAvailable()) {
+                tracker = trk;
+                break;
+            }
+        }
+        if (tracker == null) {
+            throw new Error(
+                'Impossible to generate a rent, no track available'
+            );
+        }
+
+        tracker.activate();
+    }
+
     private startRentsInRuntime(): void {
         const minInterval = 5;
-        const maxInterval = 20;
+        const maxInterval = 15;
         let randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
-        setInterval(() => {
+        setInterval(async () => {
             if (randomInterval == 0) {
-                const trk = new Tracker(uuidv4());
-                const rent = new Rent(uuidv4(), trk);
-                this.rentList.push(rent);
-                rent.register(this);
-                rent.activate();
-
+                try {
+                    await this.startRent();
+                } catch (err) {
+                    console.error(`Error caught trying to start a new rent in runtime.\n${err}`);
+                }
                 randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
             }
 
             randomInterval--;
         }, 1000);
-    }
-
-    updateRentEnded(id: string): void {
-        const endedRentIndex = this.rentList.findIndex((trk) => trk.getId() == id);
-
-        if (endedRentIndex == -1) {
-            throw new Error(
-                `Rent with id '${id}' is ended but not found in list`
-            );
-        }
-
-        this.rentList.splice(endedRentIndex, 1);
     }
 }

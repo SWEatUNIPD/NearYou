@@ -2,21 +2,22 @@
   "name": "client",
   "version": "1.0.0",
   "main": "App.ts",
+  "type": "module",
   "scripts": {
-    "app": "tsx src/App.ts",
+    "app": "tsx ./src/App.ts",
     "test": "vitest",
     "coverage": "vitest run --coverage",
     "lint": "eslint . --ext .ts"
   },
-  "author": "",
+  "author": "SWEatUNIPD",
   "license": "ISC",
-  "description": "",
+  "description": "NearYou - Smart Custom Advertising Platform",
   "dependencies": {
     "@mapbox/polyline": "^1.2.1",
     "dotenv": "^16.4.7",
+    "inversify": "^7.1.0",
     "kafkajs": "^2.2.4",
-    "tsx": "^4.19.2",
-    "uuid": "^11.1.0"
+    "tsx": "^4.19.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
