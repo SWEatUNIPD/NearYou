@@ -20,6 +20,7 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
+import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -33,12 +34,14 @@ import org.slf4j.LoggerFactory;
 import java.time.Duration;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 public class DataStreamJob {
 
     private final StreamExecutionEnvironment env;
     private final KafkaTopicService topicService;
+    private JobClient jobClient;
 
     public DataStreamJob(StreamExecutionEnvironment env, KafkaTopicService topicService) {
         this.env = env;
@@ -62,6 +65,10 @@ public class DataStreamJob {
                 .build();
         DataStreamSource<GPSData> kafkaSource =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "GPS Data");
+        kafkaSource.map((gpsData) -> {
+            System.out.println(gpsData);
+            return gpsData;
+        });
 
         // JDBC Connection Option
         JdbcConnectionOptions jdbcConnectionOptions = new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
@@ -140,7 +147,11 @@ public class DataStreamJob {
                         jdbcConnectionOptions));
 
         //Job execution
-        env.execute("NearYou - Smart Custom Advertising Platform");
+        jobClient=env.executeAsync("NearYou - Smart Custom Advertising Platform");
+    }
+
+    public void stopExecution() throws ExecutionException, InterruptedException {
+        jobClient.cancel().get();
     }
 
 
@@ -168,6 +179,7 @@ public class DataStreamJob {
 
         try (Admin kafkaAdmin = AdminClient.create(KAFKA_ADMIN_PROPS)) {
             StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(STREAM_EXECUTION_ENVIRONMENT_CONFIG);
+            env.enableCheckpointing(30000); //FIXME: siamo sicuri serva un checkpointing per dei dati che devono essere generati il prima possibile, altrimenti possiamo farne a meno di mandare l'annuncio?
             DataStreamJob job = new DataStreamJob(env, new KafkaTopicService(kafkaAdmin));
             job.execute();
         }

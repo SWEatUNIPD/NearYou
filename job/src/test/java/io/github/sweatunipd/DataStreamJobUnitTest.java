@@ -10,6 +10,7 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
+import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -41,10 +42,9 @@ public class DataStreamJobUnitTest {
     @Mock
     private SingleOutputStreamOperator<Tuple3<GPSData, PointOfInterest, String>> generatedAdvertisement;
     @Mock
-    private JobExecutionResult jobResult;
+    private JobClient jobClient;
 
     private DataStreamJob dataStreamJob;
-    private GPSData gpsData;
 
     @BeforeEach
     void setUp() {
@@ -79,7 +79,7 @@ public class DataStreamJobUnitTest {
             Mockito.when(generatedAdvertisement.filter(Mockito.any())).thenReturn(generatedAdvertisement);
             Mockito.when(generatedAdvertisement.sinkTo(Mockito.<KafkaSink<Tuple3<GPSData, PointOfInterest, String>>>any())).thenReturn(Mockito.mock());
             Mockito.when(generatedAdvertisement.addSink(Mockito.any())).thenReturn(Mockito.mock());
-            Mockito.when(env.execute(Mockito.anyString())).thenReturn(jobResult);
+            Mockito.when(env.executeAsync(Mockito.anyString())).thenReturn(jobClient);
 
             dataStreamJob.execute();
         }
