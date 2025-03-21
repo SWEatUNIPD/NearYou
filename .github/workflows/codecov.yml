@@ -23,5 +23,5 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: klamerja/SensorFlowUNIPD
+          slug: SWEatUNIPD/NearYou
           working-directory: job
