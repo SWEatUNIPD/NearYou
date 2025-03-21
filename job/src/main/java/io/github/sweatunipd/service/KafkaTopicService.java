@@ -1,4 +1,4 @@
-package io.github.sweatunipd.config;
+package io.github.sweatunipd.service;
 
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -9,11 +9,11 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
-public class KafkaTopicConfig {
+public class KafkaTopicService {
     private final Admin admin;
-    private static final Logger LOG = LoggerFactory.getLogger(KafkaTopicConfig.class);
+    private static final Logger LOG = LoggerFactory.getLogger(KafkaTopicService.class);
 
-    public KafkaTopicConfig(Admin admin) {
+    public KafkaTopicService(Admin admin) {
         this.admin = admin;
     }
 

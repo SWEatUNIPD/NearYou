@@ -1,10 +1,9 @@
-package io.github.sweatunipd.config;
+package io.github.sweatunipd.service;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import io.github.sweatunipd.requests.NearestPOIRequest;
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.CreateTopicsResult;
 import org.apache.kafka.clients.admin.ListTopicsResult;
@@ -25,16 +24,16 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 @ExtendWith(MockitoExtension.class)
-public class KafkaTopicConfigTest {
+public class KafkaTopicServiceTest {
     @Mock private Admin admin;
     @Mock private ListTopicsResult listTopicsResult;
     @Mock private KafkaFuture<Set<String>> names;
 
-    private KafkaTopicConfig kafkaTopicConfig;
+    private KafkaTopicService kafkaTopicConfig;
 
     @BeforeEach
     public void init() {
-        kafkaTopicConfig = new KafkaTopicConfig(admin);
+        kafkaTopicConfig = new KafkaTopicService(admin);
     }
 
     @Test
@@ -44,7 +43,7 @@ public class KafkaTopicConfigTest {
         Mockito.when(listTopicsResult.names()).thenReturn(names);
         Mockito.when(names.get()).thenReturn(Collections.emptySet());
         Mockito.when(admin.createTopics(Mockito.any())).thenReturn(Mockito.mock(CreateTopicsResult.class));
-        Logger logger = (Logger) LoggerFactory.getLogger(KafkaTopicConfig.class);
+        Logger logger = (Logger) LoggerFactory.getLogger(KafkaTopicService.class);
         ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
@@ -63,7 +62,7 @@ public class KafkaTopicConfigTest {
         Mockito.when(listTopicsResult.names()).thenReturn(names);
         Mockito.when(names.get()).thenReturn(Collections.emptySet());
         Mockito.when(admin.createTopics(Mockito.any())).thenReturn(Mockito.mock(CreateTopicsResult.class));
-        Logger logger = (Logger) LoggerFactory.getLogger(KafkaTopicConfig.class);
+        Logger logger = (Logger) LoggerFactory.getLogger(KafkaTopicService.class);
         ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
@@ -84,7 +83,7 @@ public class KafkaTopicConfigTest {
         Mockito.when(admin.listTopics()).thenReturn(listTopicsResult);
         Mockito.when(listTopicsResult.names()).thenReturn(names);
         Mockito.when(names.get()).thenReturn(Collections.singleton("test"));
-        Logger logger = (Logger) LoggerFactory.getLogger(KafkaTopicConfig.class);
+        Logger logger = (Logger) LoggerFactory.getLogger(KafkaTopicService.class);
         ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
         listAppender.start();
         logger.addAppender(listAppender);
