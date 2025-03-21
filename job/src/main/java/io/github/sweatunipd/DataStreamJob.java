@@ -40,9 +40,9 @@ public class DataStreamJob {
     private final StreamExecutionEnvironment env;
     private final KafkaTopicService topicService;
 
-    public DataStreamJob(Configuration streamExecutionEnvironmentConfig, Admin admin) {
-        env = StreamExecutionEnvironment.getExecutionEnvironment(streamExecutionEnvironmentConfig);
-        topicService = new KafkaTopicService(admin);
+    public DataStreamJob(StreamExecutionEnvironment env, KafkaTopicService topicService) {
+        this.env = env;
+        this.topicService = topicService;
     }
 
     public void execute() throws Exception {
@@ -51,7 +51,7 @@ public class DataStreamJob {
 
         //Stream source
         Properties props = new Properties();
-        props.put("auto.offset.reset", "earliest");
+        props.put("auto.offset.reset", "latest");
         KafkaSource<GPSData> source = KafkaSource.<GPSData>builder()
                 .setBootstrapServers(System.getProperty("kafka.bootstrap.servers", "kafka:9092"))
                 .setProperties(props)
@@ -167,7 +167,8 @@ public class DataStreamJob {
         LOG.info("Job starting - NearYou");
 
         try (Admin kafkaAdmin = AdminClient.create(KAFKA_ADMIN_PROPS)) {
-            DataStreamJob job = new DataStreamJob(STREAM_EXECUTION_ENVIRONMENT_CONFIG, kafkaAdmin);
+            StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment(STREAM_EXECUTION_ENVIRONMENT_CONFIG);
+            DataStreamJob job = new DataStreamJob(env, new KafkaTopicService(kafkaAdmin));
             job.execute();
         }
     }
