@@ -6,7 +6,7 @@
     </picture>
 </p>
 
-# NearYou - Smart Custom Advertising Platform [![codecov](https://codecov.io/gh/klamerja/SensorFlowUNIPD/graph/badge.svg?token=7GTY9USNPC)](https://codecov.io/gh/klamerja/SensorFlowUNIPD)
+# NearYou - Smart Custom Advertising Platform [![codecov](https://codecov.io/gh/SWEatUNIPD/NearYou/graph/badge.svg?token=ATBZFH4VBL)](https://codecov.io/gh/SWEatUNIPD/NearYou)
 Repository relativo al codice sviluppato per il capitolato C4 dell'azienda proponente Sync Lab S.r.L. per il progetto didattico di Ingegneria del Software A.A. 2024/25 del CdL Triennale in Informatica (L31) dell'Università degli Studi di Padova.
 
 ## Tecnologie adottate
