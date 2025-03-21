@@ -31,6 +31,7 @@ export default [
             "@typescript-eslint/no-inferrable-types": "error", // Segnala se si cerca di esplicitare il tipo di una variabile quando è già implicito (con int, string e boolean)
             // in un test serve (?)
             "@typescript-eslint/no-explicit-any": "error", // Segnala se si usa "any" come tipo di variabile in modo esplicito
+            "complexity": ["error", 5] // Segnala se si supera la complessità di 5
         }
     },
 ];
