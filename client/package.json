@@ -9,18 +9,14 @@
     "coverage": "vitest run --coverage",
     "lint": "eslint . --ext .ts"
   },
-  "author": "",
+  "author": "SWEatUNIPD",
   "license": "ISC",
-  "description": "",
+  "description": "NearYou - Smart Custom Advertising Platform",
   "dependencies": {
     "@mapbox/polyline": "^1.2.1",
-    "@types/express": "^5.0.0",
-    "client": "file:",
     "dotenv": "^16.4.7",
-    "express": "^4.21.2",
     "inversify": "^7.1.0",
     "kafkajs": "^2.2.4",
-    "postgres": "^3.4.5",
     "tsx": "^4.19.2"
   },
   "devDependencies": {
