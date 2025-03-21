@@ -98,6 +98,7 @@
             <version>2.0.17</version>
         </dependency>
 
+
         <!--LogBack dependency (for testing purposes on Log4j-->
         <dependency>
             <groupId>ch.qos.logback</groupId>
