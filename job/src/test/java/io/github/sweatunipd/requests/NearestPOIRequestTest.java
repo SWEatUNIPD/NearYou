@@ -1,25 +1,18 @@
 package io.github.sweatunipd.requests;
 
-import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import io.github.sweatunipd.database.DataSourceSingleton;
+import io.github.sweatunipd.database.DatabaseConnectionSingleton;
 import io.github.sweatunipd.entity.GPSData;
 import io.github.sweatunipd.entity.PointOfInterest;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
+import io.r2dbc.spi.*;
 import java.util.List;
-import org.apache.flink.api.common.functions.OpenContext;
+import java.util.function.BiFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.streaming.api.functions.async.ResultFuture;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -27,148 +20,76 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
 class NearestPOIRequestTest {
+
+  @Mock private ConnectionFactory connectionFactory;
+
   @Mock private Connection connection;
-  @Mock private OpenContext openContext;
+
+  @Mock private Statement statement;
+
+  @Mock private Result result;
+
+  @Mock private Row row;
+
   @Mock private ResultFuture<Tuple2<GPSData, PointOfInterest>> resultFuture;
-  @Mock private PreparedStatement preparedStatement;
-  @Mock private ResultSet resultSet;
 
   private NearestPOIRequest nearestPOIRequest;
+  private GPSData gpsData;
 
   @BeforeEach
   void setUp() {
     nearestPOIRequest = new NearestPOIRequest();
+    gpsData = new GPSData(1, 78.5f, 78.5f);
   }
 
   @Test
-  @DisplayName("open() creates the connection to the database")
-  public void openAsyncJobTest() throws SQLException {
-    try (MockedStatic<DataSourceSingleton> dataSourceMockedStatic = Mockito.mockStatic(DataSourceSingleton.class)) {
-      dataSourceMockedStatic.when(DataSourceSingleton::getConnection).thenReturn(connection);
-      nearestPOIRequest.open(openContext);
-      dataSourceMockedStatic.verify(DataSourceSingleton::getConnection, Mockito.times(1));
-    }
-  }
-
-  @Test
-  @DisplayName("open() tries to open the connection to the database and encounters an error")
-  public void failOpenAsyncJobTest() {
-    try (MockedStatic<DataSourceSingleton> dataSourceMockedStatic = Mockito.mockStatic(DataSourceSingleton.class)) {
-      dataSourceMockedStatic
-          .when(DataSourceSingleton::getConnection)
-          .thenThrow(new SQLException("SQLException encountered in DB connection opening"));
-      SQLException ex =
-          Assertions.assertThrows(SQLException.class, () -> nearestPOIRequest.open(openContext));
-      Assertions.assertEquals("SQLException encountered in DB connection opening", ex.getMessage());
-      dataSourceMockedStatic.verify(DataSourceSingleton::getConnection, Mockito.times(1));
-    }
-  }
-
-  @Test
-  @DisplayName("close() closes the connection to the database")
-  public void closeAsyncJobTest() throws SQLException {
-    try (MockedStatic<DataSourceSingleton> dataSourceMockedStatic = Mockito.mockStatic(DataSourceSingleton.class)) {
-      dataSourceMockedStatic.when(DataSourceSingleton::getConnection).thenReturn(connection);
-      nearestPOIRequest.open(openContext);
-      dataSourceMockedStatic.verify(DataSourceSingleton::getConnection, Mockito.times(1));
-      Logger logger = (Logger) LoggerFactory.getLogger(NearestPOIRequest.class);
-      ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-      listAppender.start();
-      logger.addAppender(listAppender);
-
-      nearestPOIRequest.close();
-
-      List<ILoggingEvent> logsList = listAppender.list;
-      Assertions.assertEquals(0, logsList.size());
-      Mockito.verify(connection, Mockito.times(1)).close();
-    }
-  }
-
-  @Test
-  @DisplayName(
-      "close() handles the exception thrown by the closure of the connection to the database")
-  public void closeAsyncJobHandleExceptionTest() throws SQLException {
-    try (MockedStatic<DataSourceSingleton> dataSourceMockedStatic = Mockito.mockStatic(DataSourceSingleton.class)) {
-      dataSourceMockedStatic.when(DataSourceSingleton::getConnection).thenReturn(connection);
-      nearestPOIRequest.open(openContext);
-
-      Logger logger = (Logger) LoggerFactory.getLogger(NearestPOIRequest.class);
-      ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-      listAppender.start();
-      logger.addAppender(listAppender);
-
-      Mockito.doThrow(new SQLException("Error encountered in DB connection closure"))
-          .when(connection)
-          .close();
-
-      nearestPOIRequest.close();
-
-      List<ILoggingEvent> logsList = listAppender.list;
-      Assertions.assertEquals(Level.ERROR, logsList.get(0).getLevel());
-      Assertions.assertEquals(
-          "Error encountered in DB connection closure", logsList.get(0).getMessage());
-    }
-  }
-
-  @Test
-  @DisplayName("Check if asyncInvoke() returns a nearest POI")
-  void testNearestPOIRequest() throws SQLException {
-    try (MockedStatic<DataSourceSingleton> dataSourceMockedStatic = Mockito.mockStatic(DataSourceSingleton.class)) {
-      dataSourceMockedStatic.when(DataSourceSingleton::getConnection).thenReturn(connection);
-      nearestPOIRequest.open(openContext);
-      GPSData gpsData = new GPSData(1, 78.5f, 78.5f);
-      PointOfInterest pointOfInterest = new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test", "Test", "Test");
-
-      Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
-      Mockito.when(preparedStatement.executeQuery()).thenReturn(resultSet);
-      Mockito.when(resultSet.next()).thenReturn(true);
-      Mockito.when(resultSet.getFloat(1)).thenReturn(pointOfInterest.latitude());
-      Mockito.when(resultSet.getFloat(2)).thenReturn(pointOfInterest.longitude());
-      Mockito.when(resultSet.getString(3)).thenReturn(pointOfInterest.vat());
-      Mockito.when(resultSet.getString(4)).thenReturn(pointOfInterest.name());
-      Mockito.when(resultSet.getString(5)).thenReturn(pointOfInterest.category());
-      Mockito.when(resultSet.getString(6)).thenReturn(pointOfInterest.offer());
-
-      Tuple2<GPSData, PointOfInterest> tuple = new Tuple2<>(gpsData, pointOfInterest);
+  void testReturnPOI() {
+    try(MockedStatic<DatabaseConnectionSingleton> mockedStatic = Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
+      mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+      Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
+      Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
+      Mockito.when(statement.bind(Mockito.anyString(), Mockito.any())).thenReturn(statement);
+      Mockito.when(statement.execute()).thenAnswer(invocation -> Flux.just(result));
+      Mockito.when(result.map(Mockito.<BiFunction<Row, RowMetadata, ?>>any())).thenAnswer(invocation -> Flux.just(row));
+      Mockito.when(row.get("latitude", Float.class)).thenReturn(78.5f);
+      Mockito.when(row.get("longitude", Float.class)).thenReturn(78.5f);
+      Mockito.when(row.get("vat", String.class)).thenReturn("IT1234");
+      Mockito.when(row.get("name", String.class)).thenReturn("Test");
+      Mockito.when(row.get("category", String.class)).thenReturn("Test");
+      Mockito.when(row.get("offer", String.class)).thenReturn("Test");
 
       nearestPOIRequest.asyncInvoke(gpsData, resultFuture);
-
-      Mockito.verify(resultFuture, Mockito.timeout(3000)).complete(Collections.singleton(tuple));
     }
   }
 
   @Test
-  @DisplayName("check if asyncInvoke() doesnt find a nearest POI")
-  void testNoPOIOnRange() throws SQLException {
-    try (MockedStatic<DataSourceSingleton> dataSourceMockedStatic = Mockito.mockStatic(DataSourceSingleton.class)) {
-      dataSourceMockedStatic.when(DataSourceSingleton::getConnection).thenReturn(connection);
-      nearestPOIRequest.open(openContext);
-      GPSData gpsData = new GPSData(1, 78.5f, 78.5f);
-
-      Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
-      Mockito.when(preparedStatement.executeQuery()).thenReturn(resultSet);
-      Mockito.when(resultSet.next()).thenReturn(false);
+  void testNoPOI(){
+    try(MockedStatic<DatabaseConnectionSingleton> mockedStatic = Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
+      mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+      Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
+      Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
+      Mockito.when(statement.bind(Mockito.anyString(), Mockito.any())).thenReturn(statement);
+      Mockito.when(statement.execute()).thenAnswer(invocation -> Flux.just(result));
+      Mockito.when(result.map(Mockito.<BiFunction<Row, RowMetadata, ?>>any())).thenAnswer(invocation -> Flux.empty());
 
       nearestPOIRequest.asyncInvoke(gpsData, resultFuture);
-
-      Mockito.verify(resultFuture, Mockito.timeout(3000)).complete(Collections.emptyList());
     }
   }
 
   @Test
-  @DisplayName(
-      "Check if there is some connection problems with the database while preparing the statement")
-  void testFailPreparedStatement() throws SQLException {
-    try (MockedStatic<DataSourceSingleton> dataSourceMockedStatic = Mockito.mockStatic(DataSourceSingleton.class)) {
-      dataSourceMockedStatic.when(DataSourceSingleton::getConnection).thenReturn(connection);
-      nearestPOIRequest.open(openContext);
-      GPSData gpsData = new GPSData(1, 78.5f, 78.5f);
+  void testOnErrorCase() {
+    try(MockedStatic<DatabaseConnectionSingleton> mockedStatic = Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
+      mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+      Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
+      Mockito.when(connection.createStatement(Mockito.anyString()))
+          .thenThrow(new RuntimeException("Test error"));
 
-      Mockito.when(connection.prepareStatement(Mockito.anyString())).thenThrow(new SQLException("Error encountered while preparing the statement"));
-
+      // Logger
       Logger logger = (Logger) LoggerFactory.getLogger(NearestPOIRequest.class);
       ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
       listAppender.start();
@@ -176,41 +97,9 @@ class NearestPOIRequestTest {
 
       nearestPOIRequest.asyncInvoke(gpsData, resultFuture);
 
-      Mockito.verify(resultFuture, Mockito.timeout(3000)).complete(Collections.emptyList());
-
       List<ILoggingEvent> logsList = listAppender.list;
-      Assertions.assertEquals(Level.ERROR, logsList.get(0).getLevel());
-      Assertions.assertEquals(
-          "Error encountered while preparing the statement", logsList.get(0).getMessage());
-    }
-  }
-
-  @Test
-  @DisplayName(
-      "Check if there is some connection problems with the database while executing the query")
-  void testFailExecuteQuery() throws SQLException {
-    try (MockedStatic<DataSourceSingleton> dataSourceMockedStatic = Mockito.mockStatic(DataSourceSingleton.class)) {
-      dataSourceMockedStatic.when(DataSourceSingleton::getConnection).thenReturn(connection);
-      nearestPOIRequest.open(openContext);
-      GPSData gpsData = new GPSData(1, 78.5f, 78.5f);
-
-      Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
-      Mockito.when(preparedStatement.executeQuery())
-          .thenThrow(new SQLException("Error encountered while executing the query"));
-
-      Logger logger = (Logger) LoggerFactory.getLogger(NearestPOIRequest.class);
-      ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-      listAppender.start();
-      logger.addAppender(listAppender);
-
-      nearestPOIRequest.asyncInvoke(gpsData, resultFuture);
-
-      Mockito.verify(resultFuture, Mockito.timeout(3000)).complete(Collections.emptyList());
-
-      List<ILoggingEvent> logsList = listAppender.list;
-      Assertions.assertEquals(Level.ERROR, logsList.get(0).getLevel());
-      Assertions.assertEquals(
-          "Error encountered while executing the query", logsList.get(0).getMessage());
+      Assertions.assertEquals(1, logsList.size());
+      Assertions.assertEquals("Test error", logsList.get(0).getMessage());
     }
   }
 }

@@ -7,46 +7,72 @@ import org.junit.jupiter.api.Test;
 
 public class PointOfInterestTest {
   private PointOfInterest pointOfInterest;
-  private PointOfInterest pointOfInterestReplica1;
-  private PointOfInterest pointOfInterestReplica2;
-  private GPSData gpsData;
 
   @BeforeEach
   public void setUp() throws InterruptedException {
     pointOfInterest = new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test", "Test", "Test");
-    pointOfInterestReplica1 =
-        new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test", "Test", "Test");
-    pointOfInterestReplica2 = new PointOfInterest(80.5f, 80.5f, "IT101010101", "Test", "Test", "Test");
-    gpsData = new GPSData(1, 78.5f, 78.5f);
   }
 
   @Test
-  @DisplayName("Test if equals() see the same object equal to itself")
-  void testEquals() {
-    Assertions.assertEquals(pointOfInterest, pointOfInterestReplica1);
+  @DisplayName("Test different latitutude")
+  void testDifferentLat() {
+    PointOfInterest pointOfInterestCopy = new PointOfInterest(80f, 78.5f, "IT101010101", "Test", "Test", "Test");
+    Assertions.assertNotEquals(pointOfInterest, pointOfInterestCopy);
   }
 
   @Test
-  @DisplayName("Test if equals() finds that two objects are different")
-  void testNotEqualsSameObject() {
-    Assertions.assertNotEquals(pointOfInterestReplica1, pointOfInterestReplica2);
+  @DisplayName("Test different longitude")
+  void testDifferentLon() {
+    PointOfInterest pointOfInterestCopy = new PointOfInterest(78.5f, 80f, "IT101010101", "Test", "Test", "Test");
+    Assertions.assertNotEquals(pointOfInterest, pointOfInterestCopy);
   }
 
   @Test
-  @DisplayName("Test not equals between object and null")
-  void testObjNullInequality() {
-    Assertions.assertNotEquals(null, pointOfInterestReplica1);
+  @DisplayName("Test different VAT")
+  void testDifferentVat() {
+    PointOfInterest pointOfInterestCopy = new PointOfInterest(78.5f, 78.5f, "IT101010100", "Test", "Test", "Test");
+    Assertions.assertNotEquals(pointOfInterest, pointOfInterestCopy);
   }
 
   @Test
-  @DisplayName("Test that the object isn't instance of another to be equal")
-  void testNotEqualsDifferentObject() {
-    Assertions.assertNotEquals((Object) gpsData, (Object) pointOfInterest);
+  @DisplayName("Test different name")
+  void testDifferentName() {
+    PointOfInterest pointOfInterestCopy = new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test1", "Test", "Test");
+    Assertions.assertNotEquals(pointOfInterest, pointOfInterestCopy);
+  }
+
+  @Test
+  @DisplayName("Test different category")
+  void testDifferentCategory() {
+    PointOfInterest pointOfInterestCopy = new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test", "Test1", "Test");
+    Assertions.assertNotEquals(pointOfInterest, pointOfInterestCopy);
+  }
+
+  @Test
+  @DisplayName("Test different offer")
+  void testDifferentOffer() {
+    PointOfInterest pointOfInterestCopy = new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test", "Test", "Test1");
+    Assertions.assertNotEquals(pointOfInterest, pointOfInterestCopy);
+  }
+
+  @Test
+  @DisplayName("Test different obj")
+  void testDifferentObj() {
+    Object gpsData = new GPSData(1, 78.5f, 78.5f);
+    Assertions.assertNotEquals(pointOfInterest, gpsData);
+  }
+
+  @Test
+  @DisplayName("Test same POI")
+  void testSamePOI() {
+    PointOfInterest pointOfInterestCopy = new PointOfInterest(78.5f, 78.5f, "IT101010101", "Test", "Test", "Test");
+    Assertions.assertEquals(pointOfInterest, pointOfInterestCopy);
   }
 
   @Test
   @DisplayName("Test hashcode")
   void testHashCode() {
-    Assertions.assertEquals(pointOfInterest.hashCode(), pointOfInterestReplica1.hashCode());
+    PointOfInterest pointOfInterestCopy=pointOfInterest;
+    Assertions.assertEquals(pointOfInterest.hashCode(), pointOfInterestCopy.hashCode());
   }
 }

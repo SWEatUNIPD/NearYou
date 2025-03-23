@@ -64,7 +64,7 @@ CREATE TABLE points_of_interest
     PRIMARY KEY (latitude, longitude)
 );
 
-CREATE INDEX idx_points_of_interest_location ON points_of_interest USING GIST (ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)); --FIXME: is it useful?
+CREATE INDEX idx_points_of_interest_location ON points_of_interest USING GIST (ST_SetSRID(ST_MakePoint(longitude, latitude), 4326));
 
 CREATE TABLE poi_hours
 (
@@ -144,7 +144,7 @@ INSERT INTO "bikes" ("id") VALUES
 (49),
 (50);
 
-INSERT INTO "public"."points_of_interest" ("latitude", "longitude", "vat", "name", "category", "offer") VALUES
+INSERT INTO "points_of_interest" ("latitude", "longitude", "vat", "name", "category", "offer") VALUES
 (45.36529, 11.910126, '9967422856 ', 'Zanzibar', 'Ristorazione', 'bar'),
 (45.36697, 11.826941, '99498557765', 'Vega', 'Trasporti', 'fuel'),
 (45.36738, 11.872089, '99691907484', 'AF Petroli', 'Trasporti', 'fuel'),
@@ -1382,7 +1382,7 @@ INSERT INTO "poi_hours" ("latitude_poi", "longitude_poi", "day_of_week", "open_a
 (45.449547, 11.896874, 4, '08:00:00+01', '19:00:00+01'),
 (45.449547, 11.896874, 5, '08:00:00+01', '19:00:00+01');
 
-INSERT INTO "public"."users" ("email", "name", "text_area") VALUES
+INSERT INTO "users" ("email", "name", "text_area") VALUES
 ('utente10@example.com', 'User_10', 'Preferenze utente 10'),
 ('utente11@example.com', 'User_11', 'Preferenze utente 11'),
 ('utente12@example.com', 'User_12', 'Preferenze utente 12'),
@@ -1542,22 +1542,22 @@ INSERT INTO "user_interests" ("user_email", "category") VALUES
 ('utente9@example.com', 'Intrattenimento, Arte e Cultura'),
 ('utente9@example.com', 'Cartoleria, regali, libri, giornali');
 
-INSERT INTO "rents" ("id", "bike_id", "user_email", "is_closed") VALUES
-(1, 1, 'utente1@example.com', 'f'),
-(2, 2, 'utente2@example.com', 'f'),
-(3, 3, 'utente3@example.com', 'f'),
-(4, 4, 'utente4@example.com', 'f'),
-(5, 5, 'utente5@example.com', 'f'),
-(6, 6, 'utente6@example.com', 'f'),
-(7, 7, 'utente1@example.com', 'f'),
-(8, 8, 'utente2@example.com', 'f'),
-(9, 9, 'utente3@example.com', 'f'),
-(10, 10, 'utente4@example.com', 'f'),
-(11, 11, 'utente5@example.com', 'f'),
-(12, 12, 'utente6@example.com', 'f'),
-(13, 13, 'utente13@example.com', 'f'),
-(14, 14, 'utente14@example.com', 'f'),
-(15, 15, 'utente15@example.com', 'f'),
-(16, 16, 'utente16@example.com', 'f'),
-(17, 17, 'utente17@example.com', 'f'),
-(18, 18, 'utente18@example.com', 'f');
+INSERT INTO "rents" ("id", "bike_id", "user_email") VALUES
+(1, 1, 'utente1@example.com'),
+(2, 2, 'utente2@example.com'),
+(3, 3, 'utente3@example.com'),
+(4, 4, 'utente4@example.com'),
+(5, 5, 'utente5@example.com'),
+(6, 6, 'utente6@example.com'),
+(7, 7, 'utente1@example.com'),
+(8, 8, 'utente2@example.com'),
+(9, 9, 'utente3@example.com'),
+(10, 10, 'utente4@example.com'),
+(11, 11, 'utente5@example.com'),
+(12, 12, 'utente6@example.com'),
+(13, 13, 'utente13@example.com'),
+(14, 14, 'utente14@example.com'),
+(15, 15, 'utente15@example.com'),
+(16, 16, 'utente16@example.com'),
+(17, 17, 'utente17@example.com'),
+(18, 18, 'utente18@example.com');

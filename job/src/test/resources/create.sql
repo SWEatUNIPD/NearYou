@@ -40,8 +40,7 @@ CREATE TABLE rents
 (
     id         SERIAL NOT NULL PRIMARY KEY,
     bike_id    INT    NOT NULL REFERENCES bikes (id) ON DELETE CASCADE,
-    user_email TEXT   NOT NULL REFERENCES users (email) ON DELETE CASCADE,
-    is_closed  BOOL   NOT NULL DEFAULT FALSE
+    user_email TEXT   NOT NULL REFERENCES users (email) ON DELETE CASCADE
 );
 
 CREATE TABLE positions
@@ -64,7 +63,7 @@ CREATE TABLE points_of_interest
     PRIMARY KEY (latitude, longitude)
 );
 
-CREATE INDEX idx_points_of_interest_location ON points_of_interest USING GIST (ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)); --FIXME: is it useful?
+CREATE INDEX idx_points_of_interest_location ON points_of_interest USING GIST (ST_SetSRID(ST_MakePoint(longitude, latitude), 4326));
 
 CREATE TABLE poi_hours
 (
@@ -91,20 +90,27 @@ CREATE TABLE advertisements
     UNIQUE (latitude_poi, longitude_poi, position_rent_id)
 );
 
-INSERT INTO bikes ("id")
-VALUES (1);
 
-INSERT INTO users (email, name, "text_area")
-VALUES ('1', 'Kla', 'Pizza');
+INSERT INTO "bikes" ("id") VALUES
+(1);
 
-INSERT INTO points_of_interest (latitude, longitude, vat, name, category, offer)
-VALUES (78.5, 78.5, 'IT101010101', 'Pizza', 'Cibo e bevande', 'Pizza');
+INSERT INTO "points_of_interest" ("latitude", "longitude", "vat", "name", "category", "offer") VALUES
+(78.5, 78.5, 'IT101010101', 'Cafè Zhivago', 'Cibo e bevande', 'Drink, superalcolici, aperitivi di laurea, birre artigianali');
 
-INSERT INTO poi_hours (latitude_poi, longitude_poi, day_of_week, open_at, close_at)
-VALUES (78.5, 78.5, 2, '00:00:00+00', '23:59:59+00');
+INSERT INTO "poi_hours" ("latitude_poi", "longitude_poi", "day_of_week", "open_at", "close_at") VALUES
+(78.5, 78.5, 1, '00:00:00+00', '23:59:59+00'),
+(78.5, 78.5, 2, '00:00:00+00', '23:59:59+00'),
+(78.5, 78.5, 3, '00:00:00+00', '23:59:59+00'),
+(78.5, 78.5, 4, '00:00:00+00', '23:59:59+00'),
+(78.5, 78.5, 5, '00:00:00+00', '23:59:59+00'),
+(78.5, 78.5, 6, '00:00:00+00', '23:59:59+00'),
+(78.5, 78.5, 7, '00:00:00+00', '23:59:59+00');
 
-INSERT INTO rents (id, bike_id, user_email, is_closed)
-VALUES (1, 1, '1', 'f');
+INSERT INTO "users" ("email", "name", "text_area") VALUES
+('utente1@example.com', 'Ingegneria Delsudore', 'Birre artigianli, drink delicati, whisky, rum');
 
-INSERT INTO user_interests (user_email, category)
-VALUES ('1', 'Cibo e bevande');
+INSERT INTO "user_interests" ("user_email", "category") VALUES
+('utente1@example.com', 'Cibo e bevande');
+
+INSERT INTO "rents" ("id", "bike_id", "user_email") VALUES
+(1, 1, 'utente1@example.com');
