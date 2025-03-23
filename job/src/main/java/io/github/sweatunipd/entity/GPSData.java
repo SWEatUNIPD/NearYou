@@ -5,19 +5,23 @@ import java.util.Objects;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
 public class GPSData {
-  private Timestamp timestamp;
   private int rentId;
   private float latitude;
   private float longitude;
+  private Timestamp timestamp;
 
   public GPSData(
       @JsonProperty("trackerId") int rentId,
       @JsonProperty("latitude") float latitude,
       @JsonProperty("longitude") float longitude) {
-    this.timestamp = new Timestamp(System.currentTimeMillis());
     this.rentId = rentId;
     this.latitude = latitude;
     this.longitude = longitude;
+    this.timestamp = new Timestamp(System.currentTimeMillis());
+  }
+
+  public GPSData(){
+    this.timestamp = new Timestamp(System.currentTimeMillis());
   }
 
   public Timestamp getTimestamp() {
@@ -36,16 +40,20 @@ public class GPSData {
     return longitude;
   }
 
-  @Override
-  public String toString() {
-    return "GPSData{"
-        + "latitude="
-        + latitude
-        + ", rentId="
-        + rentId
-        + ", longitude="
-        + longitude
-        + '}';
+  public void setLatitude(float latitude) {
+    this.latitude = latitude;
+  }
+
+  public void setLongitude(float longitude) {
+    this.longitude = longitude;
+  }
+
+  public void setRentId(int rentId) {
+    this.rentId = rentId;
+  }
+
+  public void setTimestamp(Timestamp timestamp) {
+    this.timestamp = timestamp;
   }
 
   @Override

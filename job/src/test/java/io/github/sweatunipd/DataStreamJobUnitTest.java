@@ -10,7 +10,6 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
-import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSink;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -41,8 +40,6 @@ public class DataStreamJobUnitTest {
     private SingleOutputStreamOperator<Tuple2<GPSData, PointOfInterest>> interestedPOI;
     @Mock
     private SingleOutputStreamOperator<Tuple3<GPSData, PointOfInterest, String>> generatedAdvertisement;
-    @Mock
-    private JobClient jobClient;
 
     private DataStreamJob dataStreamJob;
 
@@ -54,14 +51,18 @@ public class DataStreamJobUnitTest {
     @Test
     @DisplayName("Job execution")
     void test() throws Exception {
-        Mockito.doNothing().when(topicService).createTopics(Mockito.any(String[].class));
+        //Mock of topic creation
+        Mockito.doNothing().when(topicService).createTopics("gps-data", "adv-data");
+
+        //Mock of gps-data Kafka Source
         Mockito.when(env.fromSource(Mockito.<KafkaSource<GPSData>>any(), Mockito.any(), Mockito.anyString())).thenReturn(kafkaSource);
         Mockito.when(kafkaSource.filter(Mockito.any())).thenReturn(kafkaSource);
         Mockito.when(kafkaSource.addSink(Mockito.any())).thenReturn(gpsDataDataStreamSink);
         Mockito.when(gpsDataDataStreamSink.name(Mockito.anyString())).thenReturn(gpsDataDataStreamSink);
+
         try (MockedStatic<AsyncDataStream> mockedAsyncDataStream = Mockito.mockStatic(AsyncDataStream.class)) {
             mockedAsyncDataStream.when(() -> AsyncDataStream.unorderedWait(
-                            Mockito.<DataStreamSource<GPSData>>any(),
+                            Mockito.same(kafkaSource),
                             Mockito.any(NearestPOIRequest.class),
                             Mockito.anyLong(),
                             Mockito.eq(TimeUnit.MILLISECONDS),
@@ -69,7 +70,7 @@ public class DataStreamJobUnitTest {
                     .thenReturn(interestedPOI);
 
             mockedAsyncDataStream.when(() -> AsyncDataStream.unorderedWait(
-                            Mockito.<DataStreamSource<Tuple2<GPSData, PointOfInterest>>>any(),
+                            Mockito.same(interestedPOI),
                             Mockito.any(AdvertisementGenerationRequest.class),
                             Mockito.anyLong(),
                             Mockito.eq(TimeUnit.MILLISECONDS),
@@ -79,7 +80,7 @@ public class DataStreamJobUnitTest {
             Mockito.when(generatedAdvertisement.filter(Mockito.any())).thenReturn(generatedAdvertisement);
             Mockito.when(generatedAdvertisement.sinkTo(Mockito.<KafkaSink<Tuple3<GPSData, PointOfInterest, String>>>any())).thenReturn(Mockito.mock());
             Mockito.when(generatedAdvertisement.addSink(Mockito.any())).thenReturn(Mockito.mock());
-            Mockito.when(env.executeAsync(Mockito.anyString())).thenReturn(jobClient);
+            Mockito.when(env.execute(Mockito.anyString())).thenReturn(Mockito.mock(JobExecutionResult.class));
 
             dataStreamJob.execute();
         }

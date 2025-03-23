@@ -7,6 +7,10 @@ import io.github.sweatunipd.requests.NearestPOIRequest;
 import io.github.sweatunipd.service.KafkaTopicService;
 import io.github.sweatunipd.utility.AdvertisementSerializationSchema;
 import io.github.sweatunipd.utility.GPSDataDeserializationSchema;
+import java.time.Duration;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 import org.apache.flink.api.common.eventtime.WatermarkStrategy;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
@@ -20,7 +24,6 @@ import org.apache.flink.connector.kafka.sink.KafkaRecordSerializationSchema;
 import org.apache.flink.connector.kafka.sink.KafkaSink;
 import org.apache.flink.connector.kafka.source.KafkaSource;
 import org.apache.flink.connector.kafka.source.enumerator.initializer.OffsetsInitializer;
-import org.apache.flink.core.execution.JobClient;
 import org.apache.flink.streaming.api.datastream.AsyncDataStream;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.datastream.DataStreamSource;
@@ -31,17 +34,10 @@ import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
 public class DataStreamJob {
 
     private final StreamExecutionEnvironment env;
     private final KafkaTopicService topicService;
-    private JobClient jobClient;
 
     public DataStreamJob(StreamExecutionEnvironment env, KafkaTopicService topicService) {
         this.env = env;
@@ -54,27 +50,23 @@ public class DataStreamJob {
 
         //Stream source
         Properties props = new Properties();
-        props.put("auto.offset.reset", "latest");
         KafkaSource<GPSData> source = KafkaSource.<GPSData>builder()
                 .setBootstrapServers(System.getProperty("kafka.bootstrap.servers", "kafka:9092"))
                 .setProperties(props)
                 .setTopics("gps-data")
                 .setGroupId("nearyou-group")
-                .setStartingOffsets(OffsetsInitializer.latest())
+                .setStartingOffsets(OffsetsInitializer.earliest())
                 .setValueOnlyDeserializer(new GPSDataDeserializationSchema())
                 .build();
         DataStreamSource<GPSData> kafkaSource =
                 env.fromSource(source, WatermarkStrategy.noWatermarks(), "GPS Data");
-        kafkaSource.map((gpsData) -> {
-            System.out.println(gpsData);
-            return gpsData;
-        });
 
         // JDBC Connection Option
         JdbcConnectionOptions jdbcConnectionOptions = new JdbcConnectionOptions.JdbcConnectionOptionsBuilder()
                 .withUrl(System.getProperty("jdbc.url", "jdbc:postgresql://postgis:5432/admin"))
                 .withDriverName("org.postgresql.Driver")
                 .withUsername("admin") // DB username
+                .withConnectionCheckTimeoutSeconds(10)
                 .withPassword("adminadminadmin") // DB password
                 .build();
 
@@ -85,12 +77,10 @@ public class DataStreamJob {
                         JdbcSink.sink(
                                 "INSERT INTO positions (time_stamp, rent_id, latitude, longitude) VALUES (?, ?, ?, ?)",
                                 (statement, gpsData) -> {
-                                    if (gpsData != null) {
-                                        statement.setTimestamp(1, gpsData.getTimestamp());
-                                        statement.setInt(2, gpsData.getRentId());
-                                        statement.setFloat(3, gpsData.getLatitude());
-                                        statement.setFloat(4, gpsData.getLongitude());
-                                    }
+                                    statement.setTimestamp(1, gpsData.getTimestamp());
+                                    statement.setInt(2, gpsData.getRentId());
+                                    statement.setFloat(3, gpsData.getLatitude());
+                                    statement.setFloat(4, gpsData.getLongitude());
                                 },
                                 JdbcExecutionOptions.builder()
                                         .withBatchSize(1000)
@@ -147,11 +137,7 @@ public class DataStreamJob {
                         jdbcConnectionOptions));
 
         //Job execution
-        jobClient=env.executeAsync("NearYou - Smart Custom Advertising Platform");
-    }
-
-    public void stopExecution() throws ExecutionException, InterruptedException {
-        jobClient.cancel().get();
+        env.execute("NearYou - Smart Custom Advertising Platform");
     }
 
 
