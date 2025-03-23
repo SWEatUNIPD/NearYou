@@ -29,8 +29,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.kafka.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
-import javax.xml.crypto.Data;
-
 @Testcontainers
 public class DataStreamJobIntegrationTest {
 

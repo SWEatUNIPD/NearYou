@@ -64,7 +64,7 @@ CREATE TABLE points_of_interest
     PRIMARY KEY (latitude, longitude)
 );
 
-CREATE INDEX idx_points_of_interest_location ON points_of_interest USING GIST (ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)); --FIXME: is it useful?
+CREATE INDEX idx_points_of_interest_location ON points_of_interest USING GIST (ST_SetSRID(ST_MakePoint(longitude, latitude), 4326));
 
 CREATE TABLE poi_hours
 (
