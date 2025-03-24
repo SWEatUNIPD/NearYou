@@ -58,13 +58,15 @@ export class Tracker {
                     clearInterval(intervalId);
                 }
                 
-                let trackerId: string = this.id;
-                let latitude: number = trackPoints[currIndex].getLatitude();
-                let longitude: number = trackPoints[currIndex].getLongitude();
-                let message: string = JSON.stringify({
-                    trackerId,
-                    latitude,
-                    longitude
+                const timestamp: number = Date.now();
+                const trackerId: string = this.id;
+                const latitude: number = trackPoints[currIndex].getLatitude();
+                const longitude: number = trackPoints[currIndex].getLongitude();
+                const message: string = JSON.stringify({
+                    timestamp: timestamp,
+                    rentId: trackerId,
+                    latitude: latitude,
+                    longitude: longitude
                 });
 
                 await this.kafkaManager.sendMessage(producer, 'gps-data', message);
