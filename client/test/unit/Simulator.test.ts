@@ -19,8 +19,8 @@ describe('Simulator', () => {
     beforeEach(() => {
         // Inizializza una lista di tracker fittizi
         trackerList = [
-            new Tracker('tracker-1', kafkaManagerMock),
-            new Tracker('tracker-2', kafkaManagerMock)
+            new Tracker('1', kafkaManagerMock),
+            new Tracker('2', kafkaManagerMock)
         ];
 
         // Crea un'istanza di Simulator con la lista di tracker
