@@ -23,7 +23,7 @@ Le tecnologie adottate dal nostro _Minimum Viable Product_ sono:
     "rentId": identificator_of_the_rent,
     "latitude": latitude,
     "longitude": longitude,
-    "timestamp": timestamp,
+    "timestamp": timestamp
   }
   ```
 - **Apache Flink** (Java) per sviluppare il cuore pulsante, ovvero il sistema a cui viene delegato il compito di
