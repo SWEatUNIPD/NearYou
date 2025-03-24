@@ -11,18 +11,17 @@ public class GPSData {
   private Timestamp timestamp;
 
   public GPSData(
-      @JsonProperty("trackerId") int rentId,
+      @JsonProperty("rentId") int rentId,
       @JsonProperty("latitude") float latitude,
-      @JsonProperty("longitude") float longitude) {
+      @JsonProperty("longitude") float longitude,
+      @JsonProperty("timestamp") Timestamp timestamp) {
     this.rentId = rentId;
     this.latitude = latitude;
     this.longitude = longitude;
-    this.timestamp = new Timestamp(System.currentTimeMillis());
+    this.timestamp = timestamp;
   }
 
-  public GPSData(){
-    this.timestamp = new Timestamp(System.currentTimeMillis());
-  }
+  public GPSData() {}
 
   public Timestamp getTimestamp() {
     return timestamp;

@@ -15,7 +15,8 @@ public class DatabaseConnectionSingleton {
       instance =
           ConnectionFactories.get(
               ConnectionFactoryOptions.builder()
-                  .option(ConnectionFactoryOptions.DRIVER, "postgresql")
+                  .option(ConnectionFactoryOptions.DRIVER, "pool")
+                  .option(ConnectionFactoryOptions.PROTOCOL, "postgresql")
                   .option(
                       ConnectionFactoryOptions.HOST,
                       System.getProperty("postgres.hostname", "postgis"))

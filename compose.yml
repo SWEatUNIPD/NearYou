@@ -1,6 +1,14 @@
 services:
+
+  job-build:
+    image: maven:3.8-openjdk-17
+    volumes:
+      - ./job:/app
+    working_dir: /app
+    command: mvn clean package -DskipTests
+
   kafka:
-    image: apache/kafka:latest
+    image: apache/kafka:4.0.0
     ports:
       - 9094:9094
     environment:
@@ -13,18 +21,10 @@ services:
       KAFKA_CONTROLLER_QUORUM_VOTERS: 0@localhost:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    ports:
-      - 8080:8080
-    environment:
-      DYNAMIC_CONFIG_ENABLED: 'true'
-    volumes:
-      - ./data/kui/config.yaml:/etc/kafkaui/dynamic_config.yaml
-
   postgis:
-    image: postgis/postgis
+    image: postgis/postgis:17-3.5
     restart: always
+    command: -c 'max_connections=200'
     ports:
       - 5432:5432
     environment:
@@ -34,7 +34,7 @@ services:
     volumes:
       - ./create.sql:/docker-entrypoint-initdb.d/create.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "admin", "-U", "admin"]
+      test: [ "CMD-SHELL", "pg_isready", "-d", "admin", "-U", "admin" ]
       interval: 30s
       timeout: 60s
       retries: 5
@@ -54,7 +54,9 @@ services:
       kafka:
         condition: service_started
       postgis:
-          condition: service_healthy
+        condition: service_healthy
+      job-build:
+        condition: service_completed_successfully
     ports:
       - 8081:8081
     command: standalone-job --job-classname io.github.sweatunipd.DataStreamJob
@@ -80,3 +82,27 @@ services:
         jobmanager.rpc.address: jobmanager
         taskmanager.numberOfTaskSlots: 2
         parallelism.default: 2
+
+  simulator:
+    build: ./client
+    depends_on:
+      - kafka
+    environment:
+      - CLIENT_ID=simulator
+      - BROKER=kafka:9092
+      - INIT_TRACKER_COUNT=50
+      - MAP_CENTER_LAT=45.406434
+      - MAP_CENTER_LON=11.876761
+      - MAP_RADIUS_KM=3
+      - MAX_NUM_TRACK_POINTS=1000
+      - SENDING_INTERVAL_MILLISECONDS=3000
+
+  #TODO: immagine da rimuovere -> DEBUG per development
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8080:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    volumes:
+      - ./data/kui/config.yaml:/etc/kafkaui/dynamic_config.yaml

@@ -55,7 +55,7 @@ public class DataStreamJob {
                 .setProperties(props)
                 .setTopics("gps-data")
                 .setGroupId("nearyou-group")
-                .setStartingOffsets(OffsetsInitializer.earliest())
+                .setStartingOffsets(OffsetsInitializer.latest())
                 .setValueOnlyDeserializer(new GPSDataDeserializationSchema())
                 .build();
         DataStreamSource<GPSData> kafkaSource =

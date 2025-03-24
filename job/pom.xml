@@ -88,6 +88,25 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.5</version>
         </dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>r2dbc-postgresql</artifactId>
+            <version>1.0.7.RELEASE</version>
+        </dependency>
+
+        <!--Project Reactor dependencies-->
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-bom</artifactId>
+            <version>2024.0.4</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.r2dbc</groupId>
+            <artifactId>r2dbc-pool</artifactId>
+            <version>1.0.2.RELEASE</version>
+        </dependency>
 
         <!--HikariCP dependency-->
         <dependency>
@@ -104,7 +123,7 @@
         </dependency>
 
 
-        <!--LogBack dependency (for testing purposes on Log4j-->
+        <!--LogBack dependency-->
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
@@ -122,13 +141,6 @@
             <groupId>dev.langchain4j</groupId>
             <artifactId>langchain4j</artifactId>
             <version>1.0.0-beta1</version>
-        </dependency>
-
-        <!--Failsafe dependency-->
-        <dependency>
-            <groupId>dev.failsafe</groupId>
-            <artifactId>failsafe</artifactId>
-            <version>3.3.2</version>
         </dependency>
 
         <!--JUnit dependencies-->
@@ -177,6 +189,7 @@
             <version>5.16.0</version>
             <scope>test</scope>
         </dependency>
+
         <!--TestContainers dependencies-->
         <dependency>
             <groupId>org.testcontainers</groupId>
@@ -200,27 +213,6 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>kafka</artifactId>
             <version>1.20.6</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>r2dbc-postgresql</artifactId>
-            <version>1.0.7.RELEASE</version>
-        </dependency>
-
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-bom</artifactId>
-            <version>2024.0.4</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>io.projectreactor</groupId>
-            <artifactId>reactor-test</artifactId>
-            <version>3.8.0-M1</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
