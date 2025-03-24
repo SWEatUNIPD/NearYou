@@ -71,28 +71,4 @@ describe('Simulator', () => {
         // Verifica che venga lanciata un'eccezione
         await expect(simulator['startRent']()).rejects.toThrow('Impossible to generate a rent, no track available');
     });
-
-    // Test di startRentsInRuntime
-    it('dovrebbe avviare i rent a runtime con intervalli casuali', async () => {
-        // Definisci un'interfaccia per i metodi privati
-        interface SimulatorPrivateMethods {
-            startRent: () => Promise<void>;
-        }
-
-        // Mock del metodo startRent per simulare l'avvio di un rent
-        const startRentSpy = vi.spyOn(simulator as unknown as SimulatorPrivateMethods, 'startRent').mockResolvedValue(undefined);
-
-        // Usiamo i fake timers per controllare setInterval
-        vi.useFakeTimers();
-        simulator['startRentsInRuntime']();
-
-        // Simuliamo l'avanzamento del tempo per attivare il setInterval
-        vi.advanceTimersByTime(20000); // Avanza di 20 secondi
-
-        // Verifica che startRent sia stato chiamato almeno una volta
-        expect(startRentSpy).toHaveBeenCalled();
-
-        // Ripristiniamo i timer reali
-        vi.useRealTimers();
-    });
 });

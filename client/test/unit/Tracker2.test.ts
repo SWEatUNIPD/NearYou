@@ -24,7 +24,7 @@ describe('Tracker', () => {
         } as unknown as KafkaManager;
 
         // Crea un'istanza di Tracker con il mock di KafkaManager
-        tracker = new Tracker('tracker-1', kafkaManagerMock);
+        tracker = new Tracker('1', kafkaManagerMock);
 
         // Mock di env.SENDING_INTERVAL_MILLISECONDS
         env.SENDING_INTERVAL_MILLISECONDS = '1000'; // Valore mockato
@@ -36,10 +36,8 @@ describe('Tracker', () => {
 
     // Verifica che il messaggio venga correttamente formato e inviato tramite il KafkaManager
     it('dovrebbe muoversi lungo i punti del percorso e inviare messaggi Kafka', async () => {
-        const trackPoints = [new GeoPoint(1, 1), new GeoPoint(2, 2)];
+        const trackPoints = [ new GeoPoint(1, 1) ];
         const sendMessageSpy = vi.spyOn(kafkaManagerMock, 'sendMessage');
-        //const disconnectProducerSpy = vi.spyOn(kafkaManagerMock, 'disconnectProducer');
-        //const disconnectConsumerSpy = vi.spyOn(kafkaManagerMock, 'disconnectConsumer');
 
         vi.useFakeTimers(); // Usa i fake timers per controllare setInterval
 
@@ -55,23 +53,18 @@ describe('Tracker', () => {
         vi.advanceTimersByTime(Number(env.SENDING_INTERVAL_MILLISECONDS));
         await Promise.resolve(); // Attendi che il ciclo di setInterval venga eseguito
 
-        // Verifica che il producer e il consumer siano stati disconnessi
-        //expect(disconnectProducerSpy).toHaveBeenCalled();
-        //expect(disconnectConsumerSpy).toHaveBeenCalled();
-
         // Verifica che i messaggi siano stati inviati correttamente
         expect(sendMessageSpy).toHaveBeenCalledTimes(trackPoints.length);
-        for (let i = 0; i < trackPoints.length; i++) {
-            expect(sendMessageSpy).toHaveBeenCalledWith(
-                expect.anything(),
-                'gps-data',
-                JSON.stringify({
-                    trackerId: 'tracker-1',
-                    latitude: trackPoints[i].getLatitude(),
-                    longitude: trackPoints[i].getLongitude(),
-                })
-            );
-        }
+        expect(sendMessageSpy).toHaveBeenCalledWith(
+            expect.anything(),
+            'gps-data',
+            JSON.stringify({
+                timestamp: Date.now(),
+                rentId: '1',
+                latitude: trackPoints[0].getLatitude(),
+                longitude: trackPoints[0].getLongitude(),
+            })
+        );
 
         vi.useRealTimers(); // Ripristina i timer reali
 

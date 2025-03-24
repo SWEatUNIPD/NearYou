@@ -18,8 +18,6 @@ export class Simulator {
                 return;
             }
         }
-
-        this.startRentsInRuntime();
     }
 
     private async startRent(): Promise<void> {
@@ -37,23 +35,5 @@ export class Simulator {
         }
 
         tracker.activate();
-    }
-
-    private startRentsInRuntime(): void {
-        const minInterval = 5;
-        const maxInterval = 15;
-        let randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
-        setInterval(async () => {
-            if (randomInterval == 0) {
-                try {
-                    await this.startRent();
-                } catch (err) {
-                    console.error(`Error caught trying to start a new rent in runtime.\n${err}`);
-                }
-                randomInterval = Math.floor(Math.random() * (maxInterval - minInterval + 1)) + minInterval;
-            }
-
-            randomInterval--;
-        }, 1000);
     }
 }
