@@ -1,11 +1,11 @@
 services:
 
-#  job-build:
-#    image: maven:3.8-openjdk-17
-#    volumes:
-#      - ./job:/app
-#    working_dir: /app
-#    command: mvn clean package -DskipTests
+  job-build:
+    image: maven:3.8-openjdk-17
+    volumes:
+      - ./job:/app
+    working_dir: /app
+    command: mvn clean package -DskipTests
 
   kafka:
     image: apache/kafka:4.0.0
@@ -55,8 +55,8 @@ services:
         condition: service_started
       postgis:
         condition: service_healthy
-#      job-build:
-#        condition: service_completed_successfully
+      job-build:
+        condition: service_completed_successfully
     ports:
       - 8081:8081
     command: standalone-job --job-classname io.github.sweatunipd.DataStreamJob
