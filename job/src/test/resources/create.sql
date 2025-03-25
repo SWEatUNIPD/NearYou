@@ -107,7 +107,7 @@ INSERT INTO "poi_hours" ("latitude_poi", "longitude_poi", "day_of_week", "open_a
 (78.5, 78.5, 7, '00:00:00+00', '23:59:59+00');
 
 INSERT INTO "users" ("email", "name", "text_area") VALUES
-('utente1@example.com', 'Ingegneria Delsudore', 'Birre artigianli, drink delicati, whisky, rum');
+('utente1@example.com', 'Ingegneria Delsudore', null);
 
 INSERT INTO "user_interests" ("user_email", "category") VALUES
 ('utente1@example.com', 'Cibo e bevande');

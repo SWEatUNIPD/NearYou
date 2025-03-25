@@ -47,7 +47,7 @@ Le tecnologie adottate dal nostro _Minimum Viable Product_ sono:
 
 Il sistema presenta un file `compose.yml` necessario ad avviare l'intero sistema.
 
-Per avviare il sistema, sarà quindi necessario eseguire semplicemente il comando `docker compose up -d`.
+Per avviare il sistema, sarà quindi necessario eseguire semplicemente il comando `docker compose up -d --build`.
 
 Per terminare il sistema, basterà eseguire il comando `docker compose down -v`.
 

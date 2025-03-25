@@ -1,8 +1,7 @@
-package io.github.sweatunipd.entity;
+package io.github.sweatunipd.model;
 
 import java.sql.Timestamp;
 import java.util.Objects;
-import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.annotation.JsonProperty;
 
 public class GPSData {
   private int rentId;
@@ -10,11 +9,7 @@ public class GPSData {
   private float longitude;
   private Timestamp timestamp;
 
-  public GPSData(
-      @JsonProperty("rentId") int rentId,
-      @JsonProperty("latitude") float latitude,
-      @JsonProperty("longitude") float longitude,
-      @JsonProperty("timestamp") Timestamp timestamp) {
+  public GPSData(int rentId, float latitude, float longitude, Timestamp timestamp) {
     this.rentId = rentId;
     this.latitude = latitude;
     this.longitude = longitude;
@@ -57,7 +52,7 @@ public class GPSData {
 
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof GPSData gpsData)) return false;
+    if (!(o instanceof io.github.sweatunipd.model.GPSData gpsData)) return false;
     return rentId == gpsData.rentId
         && Float.compare(latitude, gpsData.latitude) == 0
         && Float.compare(longitude, gpsData.longitude) == 0

@@ -4,9 +4,11 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import io.github.sweatunipd.database.DatabaseConnectionSingleton;
-import io.github.sweatunipd.entity.GPSData;
-import io.github.sweatunipd.entity.PointOfInterest;
+import io.github.sweatunipd.model.GPSData;
+import io.github.sweatunipd.model.PointOfInterest;
 import io.r2dbc.spi.*;
+import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -44,18 +46,21 @@ class NearestPOIRequestTest {
   @BeforeEach
   void setUp() {
     nearestPOIRequest = new NearestPOIRequest();
-    gpsData = new GPSData(1, 78.5f, 78.5f);
+    gpsData = new GPSData(1, 78.5f, 78.5f, new Timestamp(System.currentTimeMillis()));
   }
 
   @Test
   void testReturnPOI() {
-    try(MockedStatic<DatabaseConnectionSingleton> mockedStatic = Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
+    try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
+        Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
       mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
       Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
+      Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
       Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
       Mockito.when(statement.bind(Mockito.anyString(), Mockito.any())).thenReturn(statement);
       Mockito.when(statement.execute()).thenAnswer(invocation -> Flux.just(result));
-      Mockito.when(result.map(Mockito.<BiFunction<Row, RowMetadata, ?>>any())).thenAnswer(invocation -> Flux.just(row));
+      Mockito.when(result.map(Mockito.<BiFunction<Row, RowMetadata, ?>>any()))
+          .thenAnswer(invocation -> Flux.just(row));
       Mockito.when(row.get("latitude", Float.class)).thenReturn(78.5f);
       Mockito.when(row.get("longitude", Float.class)).thenReturn(78.5f);
       Mockito.when(row.get("vat", String.class)).thenReturn("IT1234");
@@ -64,28 +69,42 @@ class NearestPOIRequestTest {
       Mockito.when(row.get("offer", String.class)).thenReturn("Test");
 
       nearestPOIRequest.asyncInvoke(gpsData, resultFuture);
+
+      Mockito.verify(resultFuture, Mockito.timeout(2000).times(1))
+          .complete(
+              Collections.singleton(
+                  new Tuple2<>(
+                      gpsData,
+                      new PointOfInterest(78.5f, 78.5f, "IT1234", "Test", "Test", "Test"))));
     }
   }
 
   @Test
-  void testNoPOI(){
-    try(MockedStatic<DatabaseConnectionSingleton> mockedStatic = Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
+  void testNoPOI() {
+    try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
+        Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
       mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
       Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
+      Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
       Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
       Mockito.when(statement.bind(Mockito.anyString(), Mockito.any())).thenReturn(statement);
       Mockito.when(statement.execute()).thenAnswer(invocation -> Flux.just(result));
-      Mockito.when(result.map(Mockito.<BiFunction<Row, RowMetadata, ?>>any())).thenAnswer(invocation -> Flux.empty());
+      Mockito.when(result.map(Mockito.<BiFunction<Row, RowMetadata, ?>>any()))
+          .thenAnswer(invocation -> Flux.empty());
 
       nearestPOIRequest.asyncInvoke(gpsData, resultFuture);
+
+      Mockito.verify(resultFuture, Mockito.timeout(2000).times(1)).complete(Collections.emptySet());
     }
   }
 
   @Test
   void testOnErrorCase() {
-    try(MockedStatic<DatabaseConnectionSingleton> mockedStatic = Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
+    try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
+        Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
       mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
       Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
+      Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
       Mockito.when(connection.createStatement(Mockito.anyString()))
           .thenThrow(new RuntimeException("Test error"));
 

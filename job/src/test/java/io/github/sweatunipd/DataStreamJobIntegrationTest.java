@@ -132,9 +132,10 @@ public class DataStreamJobIntegrationTest {
       try (KafkaProducer<String, String> producer = new KafkaProducer<>(producerProps)) {
         ObjectMapper objectMapper = new ObjectMapper();
         ObjectNode node = objectMapper.createObjectNode();
-        node.put("trackerId", 1);
+        node.put("rentId", 1);
         node.put("latitude", 78.5f);
         node.put("longitude", 78.5f);
+        node.put("timestamp", System.currentTimeMillis());
 
         String jsonStringify = objectMapper.writeValueAsString(node);
 

@@ -4,7 +4,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
-import io.github.sweatunipd.entity.GPSData;
+import io.github.sweatunipd.dto.GPSDataDto;
 
 import java.util.List;
 
@@ -32,12 +32,12 @@ public class GPSDataDeserializationSchemaTest {
   @Test
   @DisplayName("Test if the deserialization is done successfully")
   void testInvokeMethodOpen() {
-    String jsonGPSData = "{\"trackerId\":1,\"latitude\":78.5,\"longitude\":78.5}";
+    String jsonGPSData = "{\"rentId\":1,\"latitude\":78.5,\"longitude\":78.5,\"timestamp\":1742897857667}";
     byte[] gpsDataBytes = jsonGPSData.getBytes();
 
     gpsDataDeserializationSchema.open(initializationContext);
 
-    GPSData data = gpsDataDeserializationSchema.deserialize(gpsDataBytes);
+    GPSDataDto data = gpsDataDeserializationSchema.deserialize(gpsDataBytes);
 
     Assertions.assertEquals(1, data.getRentId());
     Assertions.assertEquals(78.5f, data.getLatitude());

@@ -1,9 +1,10 @@
 package io.github.sweatunipd.requests;
 
 import io.github.sweatunipd.database.DatabaseConnectionSingleton;
-import io.github.sweatunipd.entity.GPSData;
-import io.github.sweatunipd.entity.PointOfInterest;
-
+import io.github.sweatunipd.model.GPSData;
+import io.github.sweatunipd.model.PointOfInterest;
+import io.r2dbc.spi.Connection;
+import java.awt.*;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
@@ -44,23 +45,25 @@ public class NearestPOIRequest
   @Override
   public void asyncInvoke(
       GPSData gpsData, ResultFuture<Tuple2<GPSData, PointOfInterest>> resultFuture) {
-      ZonedDateTime zonedDateTime = gpsData.getTimestamp().toInstant().atZone(ZoneId.of("UTC"));
-      Mono.from(DatabaseConnectionSingleton.getConnection().create())
-        .flatMapMany(
+    ZonedDateTime zonedDateTime = gpsData.getTimestamp().toInstant().atZone(ZoneId.of("UTC"));
+    Mono.usingWhen(
+            DatabaseConnectionSingleton.getConnection().create(),
             connection ->
-                connection
-                    .createStatement(STMT)
-                    .bind("$1", gpsData.getLongitude())
-                    .bind("$2", gpsData.getLatitude())
-                    .bind("$3", 100)
-                    .bind("$4", gpsData.getRentId())
-                    .bind("$5", gpsData.getRentId())
-                    .bind("$6", zonedDateTime)
-                    .bind("$7", zonedDateTime)
-                    .bind("$8", gpsData.getLongitude())
-                    .bind("$9", gpsData.getLatitude())
-                    .execute())
-        .flatMap(result -> result.map((row, metadata) -> row))
+                Mono.from(
+                        connection
+                            .createStatement(STMT)
+                            .bind("$1", gpsData.getLongitude())
+                            .bind("$2", gpsData.getLatitude())
+                            .bind("$3", 100)
+                            .bind("$4", gpsData.getRentId())
+                            .bind("$5", gpsData.getRentId())
+                            .bind("$6", zonedDateTime)
+                            .bind("$7", zonedDateTime)
+                            .bind("$8", gpsData.getLongitude())
+                            .bind("$9", gpsData.getLatitude())
+                            .execute())
+                    .flatMap(result -> Mono.from(result.map((row, metadata) -> row))),
+            Connection::close)
         .map(
             row ->
                 new PointOfInterest(
@@ -70,15 +73,8 @@ public class NearestPOIRequest
                     row.get("name", String.class),
                     row.get("category", String.class),
                     row.get("offer", String.class)))
-        .collectList()
-        .map(
-            list -> {
-              if (list.isEmpty()) {
-                return Collections.<Tuple2<GPSData, PointOfInterest>>emptySet();
-              } else {
-                return Collections.singleton(new Tuple2<>(gpsData, list.get(0)));
-              }
-            })
+        .map(poi -> Collections.singleton(new Tuple2<>(gpsData, poi)))
+        .defaultIfEmpty(Collections.emptySet())
         .doOnSuccess(resultFuture::complete)
         .doOnError(
             throwable -> {

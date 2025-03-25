@@ -1,7 +1,8 @@
 package io.github.sweatunipd.utility;
 
-import io.github.sweatunipd.entity.GPSData;
-import io.github.sweatunipd.entity.PointOfInterest;
+import io.github.sweatunipd.model.GPSData;
+import io.github.sweatunipd.model.PointOfInterest;
+import java.sql.Timestamp;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.JsonNode;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +23,7 @@ public class AdvertisementSerializationSchemaTest {
 
   @BeforeEach
   void setUp() {
-    gpsData = new GPSData(1, 78.5f, 78.5f);
+    gpsData = new GPSData(1, 78.5f, 78.5f, new Timestamp(System.currentTimeMillis()));
     pointOfInterest =
         new PointOfInterest(78.5f, 78.5f, "IT101010101", "TestShop", "Tester", "Testing a shop");
     advertisement = "Lorem ipsum";

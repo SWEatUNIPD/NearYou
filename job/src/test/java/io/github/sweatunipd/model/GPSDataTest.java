@@ -1,16 +1,18 @@
-package io.github.sweatunipd.entity;
+package io.github.sweatunipd.model;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Timestamp;
+
 public class GPSDataTest {
     private GPSData gpsData;
 
     @BeforeEach
     void setUp() throws InterruptedException {
-        gpsData=new GPSData(1, 78.5f, 78.5f);
+        gpsData=new GPSData(1, 78.5f, 78.5f, new Timestamp(System.currentTimeMillis()));
     }
 
     //Equals test
@@ -24,21 +26,21 @@ public class GPSDataTest {
     @Test
     @DisplayName("Test different rentId")
     void testDifferentRentId() {
-        GPSData gpsDataCopy=new GPSData(2, 78.5f, 78.5f);
+        GPSData gpsDataCopy=new GPSData(2, 78.5f, 78.5f, gpsData.getTimestamp());
         Assertions.assertNotEquals(gpsData, gpsDataCopy);
     }
 
     @Test
     @DisplayName("Test different latitude")
     void testDifferentLat() {
-        GPSData gpsDataCopy=new GPSData(1, 80f, 78.5f);
+        GPSData gpsDataCopy=new GPSData(1, 80f, 78.5f, gpsData.getTimestamp());
         Assertions.assertNotEquals(gpsData, gpsDataCopy);
     }
 
     @Test
     @DisplayName("Test different longitude")
     void testDifferentLon() {
-        GPSData gpsDataCopy=new GPSData(1, 78.5f, 80f);
+        GPSData gpsDataCopy=new GPSData(1, 78.5f, 80f, gpsData.getTimestamp());
         Assertions.assertNotEquals(gpsData, gpsDataCopy);
     }
 
@@ -46,7 +48,7 @@ public class GPSDataTest {
     @DisplayName("Test different timestamp")
     void testDifferentTimestamp() throws InterruptedException {
         Thread.sleep(200);
-        GPSData gpsDataCopy=new GPSData(1, 78.5f, 78.5f);
+        GPSData gpsDataCopy=new GPSData(1, 78.5f, 78.5f, new Timestamp(System.currentTimeMillis()));
         Assertions.assertNotEquals(gpsData, gpsDataCopy);
     }
 

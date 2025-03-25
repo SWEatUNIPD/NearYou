@@ -1,4 +1,4 @@
-package io.github.sweatunipd.entity;
+package io.github.sweatunipd.model;
 
 import java.util.Objects;
 

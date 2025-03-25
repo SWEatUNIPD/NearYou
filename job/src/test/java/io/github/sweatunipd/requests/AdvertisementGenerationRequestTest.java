@@ -8,10 +8,11 @@ import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModelName;
 import io.github.sweatunipd.database.DatabaseConnectionSingleton;
-import io.github.sweatunipd.entity.GPSData;
-import io.github.sweatunipd.entity.PointOfInterest;
+import io.github.sweatunipd.model.GPSData;
+import io.github.sweatunipd.model.PointOfInterest;
 import io.r2dbc.spi.*;
-
+import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiFunction;
 import org.apache.flink.api.common.functions.OpenContext;
@@ -27,7 +28,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.LoggerFactory;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,10 +63,12 @@ class AdvertisementGenerationRequestTest {
     advertisementGenerationRequest = new AdvertisementGenerationRequest();
     tuple =
         new Tuple2<>(
-            new GPSData(1, 45.0f, 11.0f),
+            new GPSData(1, 45.0f, 11.0f, new Timestamp(System.currentTimeMillis())),
             new PointOfInterest(78.5f, 78.5f, "IT1234", "Test", "Test", "Test"));
+  }
 
-    // OpenAI model
+  @Test
+  void testReturnAdvertisement() {
     try (MockedStatic<OpenAiChatModel> mockedStaticModel =
         Mockito.mockStatic(OpenAiChatModel.class)) {
       mockedStaticModel.when(OpenAiChatModel::builder).thenReturn(modelBuilder);
@@ -76,65 +78,100 @@ class AdvertisementGenerationRequestTest {
       Mockito.when(modelBuilder.build()).thenReturn(model);
 
       advertisementGenerationRequest.open(openContext);
+      try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
+          Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
+        // Connection mock
+        mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+
+        // Reactive stream mock
+        Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
+        Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
+        Mockito.when(statement.bind(Mockito.anyString(), Mockito.any())).thenReturn(statement);
+        Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
+        Mockito.when(statement.execute()).thenAnswer(invocation -> Mono.just(result));
+        Mockito.when(result.map(Mockito.<BiFunction<Row, RowMetadata, ?>>any()))
+            .thenAnswer(invocation -> Mono.just(row));
+        Mockito.when(row.get("text_area", String.class)).thenReturn("test");
+        Mockito.when(model.chat(Mockito.any(), Mockito.any())).thenReturn(chatResponse);
+        Mockito.when(chatResponse.aiMessage()).thenReturn(aiMessage);
+        Mockito.when(aiMessage.text()).thenReturn("test");
+
+        // Method invocation
+        advertisementGenerationRequest.asyncInvoke(tuple, resultFuture);
+
+        // Verifications
+        Mockito.verify(resultFuture, Mockito.timeout(2000).times(1))
+            .complete(Collections.singleton(new Tuple3<>(tuple.f0, tuple.f1, "test")));
+      }
     }
   }
 
   @Test
-  void testReturnPOI() {
-    try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
-        Mockito.mockStatic(DatabaseConnectionSingleton.class); ) {
-      // Connection mock
-      mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+  void testNoUserInterest() {
+    try (MockedStatic<OpenAiChatModel> mockedStaticModel =
+        Mockito.mockStatic(OpenAiChatModel.class)) {
+      mockedStaticModel.when(OpenAiChatModel::builder).thenReturn(modelBuilder);
+      Mockito.when(modelBuilder.apiKey(Mockito.anyString())).thenReturn(modelBuilder);
+      Mockito.when(modelBuilder.modelName(Mockito.<OpenAiChatModelName>any()))
+          .thenReturn(modelBuilder);
+      Mockito.when(modelBuilder.build()).thenReturn(model);
 
-      // Reactive stream mock
-      Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
-      Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
-      Mockito.when(statement.bind(Mockito.anyString(), Mockito.any())).thenReturn(statement);
-      Mockito.when(statement.execute()).thenAnswer(invocation -> Mono.just(result));
-      Mockito.when(result.map(Mockito.<BiFunction<Row, RowMetadata, ?>>any()))
-          .thenAnswer(invocation -> Flux.just(row));
-      Mockito.when(row.get("text_area", String.class)).thenReturn("test");
-      Mockito.when(model.chat(Mockito.any(), Mockito.any())).thenReturn(chatResponse);
-      Mockito.when(chatResponse.aiMessage()).thenReturn(aiMessage);
-      Mockito.when(aiMessage.text()).thenReturn("test");
+      advertisementGenerationRequest.open(openContext);
+      try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
+          Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
+        mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+        Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
+        Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
+        Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
+        Mockito.when(statement.bind(Mockito.anyString(), Mockito.any())).thenReturn(statement);
+        Mockito.when(statement.execute()).thenAnswer(invocation -> Mono.empty());
 
-      // Method invocation
-      advertisementGenerationRequest.asyncInvoke(tuple, resultFuture);
+        Mockito.when(model.chat(Mockito.any(), Mockito.any())).thenReturn(chatResponse);
+        Mockito.when(chatResponse.aiMessage()).thenReturn(aiMessage);
+        Mockito.when(aiMessage.text()).thenReturn("test");
+
+        // Invocation
+        advertisementGenerationRequest.asyncInvoke(tuple, resultFuture);
+
+        // Verification
+        Mockito.verify(row, Mockito.timeout(2000).times(0)).get("text_area", String.class);
+        Mockito.verify(resultFuture, Mockito.timeout(2000).times(1))
+            .complete(Collections.singleton(new Tuple3<>(tuple.f0, tuple.f1, "test")));
+      }
     }
   }
 
   @Test
-  void testNoUserInterest(){
-    try(MockedStatic<DatabaseConnectionSingleton> mockedStatic = Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
-      mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
-      Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
-      Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
-      Mockito.when(statement.bind(Mockito.anyString(), Mockito.any())).thenReturn(statement);
-      Mockito.when(statement.execute()).thenAnswer(invocation -> Flux.empty());
+  void testErrorDatabaseCase() {
+    try (MockedStatic<OpenAiChatModel> mockedStaticModel =
+        Mockito.mockStatic(OpenAiChatModel.class)) {
+      mockedStaticModel.when(OpenAiChatModel::builder).thenReturn(modelBuilder);
+      Mockito.when(modelBuilder.apiKey(Mockito.anyString())).thenReturn(modelBuilder);
+      Mockito.when(modelBuilder.modelName(Mockito.<OpenAiChatModelName>any()))
+          .thenReturn(modelBuilder);
+      Mockito.when(modelBuilder.build()).thenReturn(model);
 
-      advertisementGenerationRequest.asyncInvoke(tuple, resultFuture);
-    }
-  }
+      advertisementGenerationRequest.open(openContext);
+      try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
+          Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
+        mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+        Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
+        Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
+        Mockito.when(connection.createStatement(Mockito.anyString()))
+            .thenThrow(new RuntimeException("Test error"));
 
-  @Test
-  void testOnErrorCase() {
-    try(MockedStatic<DatabaseConnectionSingleton> mockedStatic = Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
-      mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
-      Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
-      Mockito.when(connection.createStatement(Mockito.anyString()))
-              .thenThrow(new RuntimeException("Test error"));
+        // Logger
+        Logger logger = (Logger) LoggerFactory.getLogger(AdvertisementGenerationRequest.class);
+        ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
+        listAppender.start();
+        logger.addAppender(listAppender);
 
-      // Logger
-      Logger logger = (Logger) LoggerFactory.getLogger(AdvertisementGenerationRequest.class);
-      ListAppender<ILoggingEvent> listAppender = new ListAppender<>();
-      listAppender.start();
-      logger.addAppender(listAppender);
+        advertisementGenerationRequest.asyncInvoke(tuple, resultFuture);
 
-      advertisementGenerationRequest.asyncInvoke(tuple, resultFuture);
-
-      List<ILoggingEvent> logsList = listAppender.list;
-      Assertions.assertEquals(1, logsList.size());
-      Assertions.assertEquals("Test error", logsList.get(0).getMessage());
+        List<ILoggingEvent> logsList = listAppender.list;
+        Assertions.assertEquals(1, logsList.size());
+        Assertions.assertEquals("Test error", logsList.get(0).getMessage());
+      }
     }
   }
 }

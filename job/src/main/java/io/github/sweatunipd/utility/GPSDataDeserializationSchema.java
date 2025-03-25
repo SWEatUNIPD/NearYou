@@ -1,6 +1,6 @@
 package io.github.sweatunipd.utility;
 
-import io.github.sweatunipd.entity.GPSData;
+import io.github.sweatunipd.dto.GPSDataDto;
 import org.apache.flink.api.common.serialization.AbstractDeserializationSchema;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.databind.json.JsonMapper;
@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 
-public class GPSDataDeserializationSchema extends AbstractDeserializationSchema<GPSData> {
+public class GPSDataDeserializationSchema extends AbstractDeserializationSchema<GPSDataDto> {
   private static final Logger LOG = LoggerFactory.getLogger(GPSDataDeserializationSchema.class);
   private transient ObjectMapper objectMapper;
 
@@ -31,9 +31,9 @@ public class GPSDataDeserializationSchema extends AbstractDeserializationSchema<
    * @return GPSData as a product of the deserialization of the message
    */
   @Override
-  public GPSData deserialize(byte[] bytes) {
+  public GPSDataDto deserialize(byte[] bytes) {
     try {
-      return objectMapper.readValue(bytes, GPSData.class);
+      return objectMapper.readValue(bytes, GPSDataDto.class);
     } catch (IOException e) {
       LOG.error(e.getMessage(), e);
       return null;

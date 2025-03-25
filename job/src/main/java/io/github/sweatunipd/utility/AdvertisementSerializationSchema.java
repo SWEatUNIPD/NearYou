@@ -1,7 +1,7 @@
 package io.github.sweatunipd.utility;
 
-import io.github.sweatunipd.entity.GPSData;
-import io.github.sweatunipd.entity.PointOfInterest;
+import io.github.sweatunipd.model.GPSData;
+import io.github.sweatunipd.model.PointOfInterest;
 import org.apache.flink.api.common.serialization.SerializationSchema;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.shaded.jackson2.com.fasterxml.jackson.core.JsonProcessingException;
