@@ -20,10 +20,10 @@ Le tecnologie adottate dal nostro _Minimum Viable Product_ sono:
   serializzati) al sistema tramite un _message broker_ (nel nostro caso **Apache Kafka**) nel seguente formato:
   ```json
   {
-    "rentId": identificator_of_the_rent,
-    "latitude": latitude,
-    "longitude": longitude,
-    "timestamp": timestamp
+    "rentId": 1,
+    "latitude": 78.32432,
+    "longitude": 90.43567,
+    "timestamp": 1234567890
   }
   ```
 - **Apache Flink** (Java) per sviluppare il cuore pulsante, ovvero il sistema a cui viene delegato il compito di
