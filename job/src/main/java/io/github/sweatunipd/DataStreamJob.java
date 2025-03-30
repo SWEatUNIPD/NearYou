@@ -48,8 +48,8 @@ public class DataStreamJob {
 
   public void execute() throws Exception {
     // Topic creation
-    topicService.createTopics(
-        "gps-data", "adv-data"); // FIXME: atm it has single replication factor and one partition
+    topicService.createTopic("gps-data", 3, (short) 1);
+    topicService.createTopic("adv-data", 3, (short) 1);
 
     // Stream source
     Properties props = new Properties();
@@ -93,10 +93,10 @@ public class DataStreamJob {
             JdbcSink.sink(
                 "INSERT INTO positions (time_stamp, rent_id, latitude, longitude) VALUES (?, ?, ?, ?)",
                 (statement, gpsData) -> {
-                  statement.setTimestamp(1, gpsData.getTimestamp());
-                  statement.setInt(2, gpsData.getRentId());
-                  statement.setFloat(3, gpsData.getLatitude());
-                  statement.setFloat(4, gpsData.getLongitude());
+                  statement.setTimestamp(1, gpsData.timestamp());
+                  statement.setInt(2, gpsData.rentId());
+                  statement.setFloat(3, gpsData.latitude());
+                  statement.setFloat(4, gpsData.longitude());
                 },
                 JdbcExecutionOptions.builder()
                     .withBatchSize(1000)
@@ -142,8 +142,8 @@ public class DataStreamJob {
             (preparedStatement, advertisement) -> {
               preparedStatement.setFloat(1, advertisement.f1.latitude());
               preparedStatement.setFloat(2, advertisement.f1.longitude());
-              preparedStatement.setTimestamp(3, advertisement.f0.getTimestamp());
-              preparedStatement.setInt(4, advertisement.f0.getRentId());
+              preparedStatement.setTimestamp(3, advertisement.f0.timestamp());
+              preparedStatement.setInt(4, advertisement.f0.rentId());
               preparedStatement.setString(5, advertisement.f2);
             },
             JdbcExecutionOptions.builder()
@@ -182,10 +182,8 @@ public class DataStreamJob {
     try (Admin kafkaAdmin = AdminClient.create(KAFKA_ADMIN_PROPS)) {
       StreamExecutionEnvironment env =
           StreamExecutionEnvironment.getExecutionEnvironment(STREAM_EXECUTION_ENVIRONMENT_CONFIG);
-      env.enableCheckpointing(
-          30000); // FIXME: siamo sicuri serva un checkpointing per dei dati che devono essere
-                  // generati il prima possibile, altrimenti possiamo farne a meno di mandare
-                  // l'annuncio?
+      // generati il prima possibile, altrimenti possiamo farne a meno di mandare
+      // l'annuncio?
       DataStreamJob job = new DataStreamJob(env, new KafkaTopicService(kafkaAdmin));
       job.execute();
     }

@@ -11,7 +11,7 @@ public class GPSDataTest {
     private GPSData gpsData;
 
     @BeforeEach
-    void setUp() throws InterruptedException {
+    void setUp() {
         gpsData=new GPSData(1, 78.5f, 78.5f, new Timestamp(System.currentTimeMillis()));
     }
 
@@ -26,21 +26,21 @@ public class GPSDataTest {
     @Test
     @DisplayName("Test different rentId")
     void testDifferentRentId() {
-        GPSData gpsDataCopy=new GPSData(2, 78.5f, 78.5f, gpsData.getTimestamp());
+        GPSData gpsDataCopy=new GPSData(2, 78.5f, 78.5f, gpsData.timestamp());
         Assertions.assertNotEquals(gpsData, gpsDataCopy);
     }
 
     @Test
     @DisplayName("Test different latitude")
     void testDifferentLat() {
-        GPSData gpsDataCopy=new GPSData(1, 80f, 78.5f, gpsData.getTimestamp());
+        GPSData gpsDataCopy=new GPSData(1, 80f, 78.5f, gpsData.timestamp());
         Assertions.assertNotEquals(gpsData, gpsDataCopy);
     }
 
     @Test
     @DisplayName("Test different longitude")
     void testDifferentLon() {
-        GPSData gpsDataCopy=new GPSData(1, 78.5f, 80f, gpsData.getTimestamp());
+        GPSData gpsDataCopy=new GPSData(1, 78.5f, 80f, gpsData.timestamp());
         Assertions.assertNotEquals(gpsData, gpsDataCopy);
     }
 
@@ -64,15 +64,5 @@ public class GPSDataTest {
     void testHashCode() {
         GPSData gpsDataCopy=gpsData;
         Assertions.assertEquals(gpsData.hashCode(), gpsDataCopy.hashCode());
-    }
-
-    @Test
-    void testSetters(){
-        GPSData gpsDataCopy=new GPSData();
-        gpsDataCopy.setRentId(1);
-        gpsDataCopy.setLatitude(78.5f);
-        gpsDataCopy.setLongitude(78.5f);
-        gpsDataCopy.setTimestamp(gpsData.getTimestamp());
-        Assertions.assertEquals(gpsData,gpsDataCopy);
     }
 }

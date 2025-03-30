@@ -10,7 +10,7 @@ public class DatabaseConnectionSingleton {
 
   private DatabaseConnectionSingleton() {}
 
-  public static synchronized ConnectionFactory getConnection() {
+  public static synchronized ConnectionFactory getConnectionFactory() {
     if (instance == null) {
       instance =
           ConnectionFactories.get(

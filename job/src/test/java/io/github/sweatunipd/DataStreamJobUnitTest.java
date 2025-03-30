@@ -48,7 +48,7 @@ public class DataStreamJobUnitTest {
   @DisplayName("Job execution")
   void test() throws Exception {
     // Mock of topic creation
-    Mockito.doNothing().when(topicService).createTopics("gps-data", "adv-data");
+    Mockito.doNothing().when(topicService).createTopic(Mockito.anyString(), Mockito.anyInt(), Mockito.anyShort());
 
     // Mock of gps-data Kafka Source
     Mockito.when(

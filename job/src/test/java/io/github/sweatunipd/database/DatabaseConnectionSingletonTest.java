@@ -36,7 +36,7 @@ public class DatabaseConnectionSingletonTest {
           .when(() -> ConnectionFactories.get(Mockito.<ConnectionFactoryOptions>any()))
           .thenReturn(connectionFactory);
       Assertions.assertInstanceOf(
-          ConnectionFactory.class, DatabaseConnectionSingleton.getConnection());
+          ConnectionFactory.class, DatabaseConnectionSingleton.getConnectionFactory());
     }
   }
 
@@ -48,8 +48,8 @@ public class DatabaseConnectionSingletonTest {
       connectionFactoriesMockedStatic
           .when(() -> ConnectionFactories.get(Mockito.anyString()))
           .thenReturn(connectionFactory);
-      ConnectionFactory connectionFactory1 = DatabaseConnectionSingleton.getConnection();
-      ConnectionFactory connectionFactory2 = DatabaseConnectionSingleton.getConnection();
+      ConnectionFactory connectionFactory1 = DatabaseConnectionSingleton.getConnectionFactory();
+      ConnectionFactory connectionFactory2 = DatabaseConnectionSingleton.getConnectionFactory();
       Assertions.assertSame(connectionFactory1, connectionFactory2);
     }
   }

@@ -30,9 +30,9 @@ public class KafkaTopicService {
             if (!kafkaExistingTopics.contains(topicName)) {
                 NewTopic newTopic = new NewTopic(topicName, numPartitions, replicationFactor);
                 admin.createTopics(Collections.singleton(newTopic));
-                LOG.info("Created topic: " + topicName); //FIXME: {} placeholder doesn't work
+                LOG.info("Created topic: " + topicName);
             } else {
-                LOG.info("Topic already exists: " + topicName); //FIXME: check out the FIXME before
+                LOG.info("Topic already exists: " + topicName);
             }
         } catch (ExecutionException | InterruptedException e) {
             LOG.error(e.getMessage(), e);

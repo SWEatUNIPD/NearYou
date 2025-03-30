@@ -53,7 +53,7 @@ class NearestPOIRequestTest {
   void testReturnPOI() {
     try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
         Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
-      mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+      mockedStatic.when(DatabaseConnectionSingleton::getConnectionFactory).thenReturn(connectionFactory);
       Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
       Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
       Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
@@ -83,7 +83,7 @@ class NearestPOIRequestTest {
   void testNoPOI() {
     try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
         Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
-      mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+      mockedStatic.when(DatabaseConnectionSingleton::getConnectionFactory).thenReturn(connectionFactory);
       Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
       Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
       Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
@@ -102,7 +102,7 @@ class NearestPOIRequestTest {
   void testOnErrorCase() {
     try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
         Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
-      mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+      mockedStatic.when(DatabaseConnectionSingleton::getConnectionFactory).thenReturn(connectionFactory);
       Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
       Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
       Mockito.when(connection.createStatement(Mockito.anyString()))

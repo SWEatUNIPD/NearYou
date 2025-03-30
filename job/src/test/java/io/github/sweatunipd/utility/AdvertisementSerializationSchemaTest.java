@@ -42,7 +42,7 @@ public class AdvertisementSerializationSchemaTest {
     JsonNode jsonNode = objectMapper.readTree(bytes);
 
     Assertions.assertEquals(advertisement, jsonNode.get("adv").asText());
-    Assertions.assertEquals(gpsData.getRentId(), jsonNode.get("rent_id").asInt());
+    Assertions.assertEquals(gpsData.rentId(), jsonNode.get("rent_id").asInt());
   }
 
   @Test

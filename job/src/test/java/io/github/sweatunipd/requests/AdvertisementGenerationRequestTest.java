@@ -81,7 +81,7 @@ class AdvertisementGenerationRequestTest {
       try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
           Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
         // Connection mock
-        mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+        mockedStatic.when(DatabaseConnectionSingleton::getConnectionFactory).thenReturn(connectionFactory);
 
         // Reactive stream mock
         Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
@@ -119,7 +119,7 @@ class AdvertisementGenerationRequestTest {
       advertisementGenerationRequest.open(openContext);
       try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
           Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
-        mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+        mockedStatic.when(DatabaseConnectionSingleton::getConnectionFactory).thenReturn(connectionFactory);
         Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
         Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
         Mockito.when(connection.createStatement(Mockito.anyString())).thenReturn(statement);
@@ -154,7 +154,7 @@ class AdvertisementGenerationRequestTest {
       advertisementGenerationRequest.open(openContext);
       try (MockedStatic<DatabaseConnectionSingleton> mockedStatic =
           Mockito.mockStatic(DatabaseConnectionSingleton.class)) {
-        mockedStatic.when(DatabaseConnectionSingleton::getConnection).thenReturn(connectionFactory);
+        mockedStatic.when(DatabaseConnectionSingleton::getConnectionFactory).thenReturn(connectionFactory);
         Mockito.when(connectionFactory.create()).thenAnswer(invocation -> Mono.just(connection));
         Mockito.when(connection.close()).thenAnswer(invocation -> Mono.empty());
         Mockito.when(connection.createStatement(Mockito.anyString()))

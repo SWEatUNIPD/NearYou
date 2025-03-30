@@ -4,7 +4,7 @@ import io.github.sweatunipd.database.DatabaseConnectionSingleton;
 import io.github.sweatunipd.model.GPSData;
 import io.github.sweatunipd.model.PointOfInterest;
 import io.r2dbc.spi.Connection;
-import java.awt.*;
+
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
@@ -45,22 +45,22 @@ public class NearestPOIRequest
   @Override
   public void asyncInvoke(
       GPSData gpsData, ResultFuture<Tuple2<GPSData, PointOfInterest>> resultFuture) {
-    ZonedDateTime zonedDateTime = gpsData.getTimestamp().toInstant().atZone(ZoneId.of("UTC"));
+    ZonedDateTime zonedDateTime = gpsData.timestamp().toInstant().atZone(ZoneId.of("UTC"));
     Mono.usingWhen(
-            DatabaseConnectionSingleton.getConnection().create(),
+            DatabaseConnectionSingleton.getConnectionFactory().create(),
             connection ->
                 Mono.from(
                         connection
                             .createStatement(STMT)
-                            .bind("$1", gpsData.getLongitude())
-                            .bind("$2", gpsData.getLatitude())
+                            .bind("$1", gpsData.longitude())
+                            .bind("$2", gpsData.latitude())
                             .bind("$3", 100)
-                            .bind("$4", gpsData.getRentId())
-                            .bind("$5", gpsData.getRentId())
+                            .bind("$4", gpsData.rentId())
+                            .bind("$5", gpsData.rentId())
                             .bind("$6", zonedDateTime)
                             .bind("$7", zonedDateTime)
-                            .bind("$8", gpsData.getLongitude())
-                            .bind("$9", gpsData.getLatitude())
+                            .bind("$8", gpsData.longitude())
+                            .bind("$9", gpsData.latitude())
                             .execute())
                     .flatMap(result -> Mono.from(result.map((row, metadata) -> row))),
             Connection::close)

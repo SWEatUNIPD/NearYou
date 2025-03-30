@@ -3,56 +3,10 @@ package io.github.sweatunipd.model;
 import java.sql.Timestamp;
 import java.util.Objects;
 
-public class GPSData {
-  private int rentId;
-  private float latitude;
-  private float longitude;
-  private Timestamp timestamp;
-
-  public GPSData(int rentId, float latitude, float longitude, Timestamp timestamp) {
-    this.rentId = rentId;
-    this.latitude = latitude;
-    this.longitude = longitude;
-    this.timestamp = timestamp;
-  }
-
-  public GPSData() {}
-
-  public Timestamp getTimestamp() {
-    return timestamp;
-  }
-
-  public int getRentId() {
-    return rentId;
-  }
-
-  public float getLatitude() {
-    return latitude;
-  }
-
-  public float getLongitude() {
-    return longitude;
-  }
-
-  public void setLatitude(float latitude) {
-    this.latitude = latitude;
-  }
-
-  public void setLongitude(float longitude) {
-    this.longitude = longitude;
-  }
-
-  public void setRentId(int rentId) {
-    this.rentId = rentId;
-  }
-
-  public void setTimestamp(Timestamp timestamp) {
-    this.timestamp = timestamp;
-  }
-
+public record GPSData(int rentId, float latitude, float longitude, Timestamp timestamp) {
   @Override
   public boolean equals(Object o) {
-    if (!(o instanceof io.github.sweatunipd.model.GPSData gpsData)) return false;
+    if (!(o instanceof GPSData gpsData)) return false;
     return rentId == gpsData.rentId
         && Float.compare(latitude, gpsData.latitude) == 0
         && Float.compare(longitude, gpsData.longitude) == 0
@@ -61,6 +15,6 @@ public class GPSData {
 
   @Override
   public int hashCode() {
-    return Objects.hash(timestamp, rentId, latitude, longitude);
+    return Objects.hash(rentId, latitude, longitude, timestamp);
   }
 }

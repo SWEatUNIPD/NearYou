@@ -58,13 +58,13 @@ public class AdvertisementGenerationRequest
       ResultFuture<Tuple3<GPSData, PointOfInterest, String>> resultFuture) {
 
     Mono.usingWhen(
-            DatabaseConnectionSingleton.getConnection().create(),
+            DatabaseConnectionSingleton.getConnectionFactory().create(),
             connection ->
                 Mono.from(
                         connection
                             .createStatement(
                                 "SELECT users.text_area FROM users JOIN rents ON rents.user_email = users.email WHERE rents.id=$1")
-                            .bind("$1", value.f0.getRentId())
+                            .bind("$1", value.f0.rentId())
                             .execute())
                     .flatMap(result -> Mono.from(result.map((row, metadata) -> row))),
             Connection::close)
@@ -87,7 +87,7 @@ public class AdvertisementGenerationRequest
                           + ".\nIl nome dell'esercizio commerciale è: "
                           + value.f1.name());
               return Mono.fromCallable(() -> model.chat(systemMessage, userMessage))
-                  .subscribeOn(Schedulers.boundedElastic()) // FIXME: check online
+                  .subscribeOn(Schedulers.boundedElastic())
                   .map(ChatResponse::aiMessage)
                   .map(AiMessage::text);
             })

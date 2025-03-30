@@ -23,7 +23,7 @@ public class AdvertisementSerializationSchema
   public byte[] serialize(Tuple3<GPSData, PointOfInterest, String> adv) {
     try {
       ObjectNode node = MAPPER.createObjectNode();
-      node.put("rent_id", adv.f0.getRentId());
+      node.put("rent_id", adv.f0.rentId());
       node.put("adv", adv.f2);
       return MAPPER.writeValueAsBytes(node);
     } catch (JsonProcessingException e) {
