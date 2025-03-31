@@ -61,12 +61,12 @@ services:
       - 8081:8081
     command: standalone-job --job-classname io.github.sweatunipd.DataStreamJob
     volumes:
-      - ./job/target/NearYou-1.0.jar:/opt/flink/usrlib/NearYou-1.0.jar
+      - ./job/target/NearYou-2.0.0.jar:/opt/flink/usrlib/NearYou-2.0.0.jar
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
-        parallelism.default: 2 
+        parallelism.default: 3
 
   taskmanager:
     image: flink:1.20.1-scala_2.12-java17
@@ -75,17 +75,18 @@ services:
     command: taskmanager
     scale: 1
     volumes:
-      - ./job/target/NearYou-1.0.jar:/opt/flink/usrlib/NearYou-1.0.jar
+      - ./job/target/NearYou-2.0.0.jar:/opt/flink/usrlib/NearYou-2.0.0.jar
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: jobmanager
-        taskmanager.numberOfTaskSlots: 2
-        parallelism.default: 2
+        taskmanager.numberOfTaskSlots: 3
+        parallelism.default: 3
 
   simulator:
     build: ./client
     depends_on:
+      - job-build
       - jobmanager
       - kafka
     environment:
@@ -99,11 +100,11 @@ services:
       - MAX_NUM_TRACK_POINTS=1000
       - SENDING_INTERVAL_MILLISECONDS=3000
 
-#  kafka-ui:
-#    image: provectuslabs/kafka-ui:latest
-#    ports:
-#      - 8080:8080
-#    environment:
-#      DYNAMIC_CONFIG_ENABLED: 'true'
-#    volumes:
-#      - ./data/kui/config.yaml:/etc/kafkaui/dynamic_config.yaml
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8080:8080
+    environment:
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    volumes:
+      - ./data/kui/config.yaml:/etc/kafkaui/dynamic_config.yaml

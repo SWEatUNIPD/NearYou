@@ -2,10 +2,12 @@ package io.github.sweatunipd.service;
 
 import org.apache.kafka.clients.admin.Admin;
 import org.apache.kafka.clients.admin.NewTopic;
+import org.apache.kafka.common.config.TopicConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
@@ -28,7 +30,7 @@ public class KafkaTopicService {
         try {
             Set<String> kafkaExistingTopics = admin.listTopics().names().get();
             if (!kafkaExistingTopics.contains(topicName)) {
-                NewTopic newTopic = new NewTopic(topicName, numPartitions, replicationFactor);
+                NewTopic newTopic = new NewTopic(topicName, numPartitions, replicationFactor).configs(Map.of(TopicConfig.RETENTION_MS_CONFIG, "8640000"));
                 admin.createTopics(Collections.singleton(newTopic));
                 LOG.info("Created topic: " + topicName);
             } else {
